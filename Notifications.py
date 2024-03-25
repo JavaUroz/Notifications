@@ -30,14 +30,19 @@ client = Client(account_sid, auth_token)
 
 mensaje_plantilla = ''
 i = 1
+
 # Función para enviar mensaje de WhatsApp
 def enviar_mensaje_whatsapp(destinatario, mensaje):
-    message = client.messages.create(
-                              from_='whatsapp:+14155238886',
-                              body = mensaje,                              
-                              to=f'whatsapp:{destinatario}'
-                          )
-    print('Mensaje enviado correctamente:', message.sid)
+    # Split the message into chunks of 1600 characters or less
+    message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
+    
+    for chunk in message_chunks:
+        message = client.messages.create(
+                                  from_='whatsapp:+14155238886',
+                                  body = chunk,                              
+                                  to=f'whatsapp:{destinatario}'
+                              )
+        print('Mensaje enviado correctamente:', message.sid)
 
 # Inicia la conexión
 try:
@@ -70,27 +75,37 @@ try:
             ('damario' in razon_social.lower()) or \
             ('comision' in razon_social.lower()) or \
             ('bayl' in razon_social.lower()) or \
+            ('30714693243' in cuit.lower()) or \
+            ('30515999686' in cuit.lower()) or \
+            ('20319059394' in cuit.lower()) or \
+            ('30707735577' in cuit.lower()) or \
+            ('20046963335' in cuit.lower()) or \
+            ('20303127411' in cuit.lower()) or \
+            ('20362238650' in cuit.lower()) or \
+            ('20103107572' in cuit.lower()) or \
             ('bossolani' in razon_social.lower()) or \
             (('cargo' in razon_social.lower()) and (cuit != '30710188501')): # Transportes exceptuando Transporte Patron y Transporte Italia
             limite = -10000
         elif ('rosatto' in razon_social.lower()) or ('cr comisiones' in razon_social.lower()):
             limite = -300000
-        elif 'gas pic' in razon_social.lower():
+        elif 'gas pic s.a. (combustibles)' in razon_social.lower():
             limite = -1000000
         elif '30711186154' in cuit: # Solser
             limite = -500000
         elif '33583193109' in cuit: # Plegamex
             limite = -50000
         elif '23067223284' in cuit: # Oxitécnica
-            limite = -150000            
+            limite = -150000
+        elif 'gas pic s.a. (lubricantes)' in razon_social.lower():
+            limite = -100000
     
         # Comprueba si el saldo supera el límite de la cuenta y ejecura la función verificar_saldos_y_enviar_notificaciones
         if saldo < limite:
             # Mensaje de la plantilla
-            mensaje_plantilla += f'{i}. {razon_social}, CUIT: {cuit_formateado} \nSALDO: *${round(saldo, 2)}* LIMITE *${round(limite,2)}* DIFERENCIA: *$-{round((limite - saldo), 2)}*.\n'
+            mensaje_plantilla += f'{i}) {razon_social} - {cuit_formateado} - *${round(saldo, 2)}*\n'
             i += 1
             
-    mensaje_completo = f'ATENCION JAVI, PAGOS EXCEDIDOS: \n{mensaje_plantilla}'
+    mensaje_completo = f'ATENCION JAVI, PAGOS EXCEDIDOS: \n   ----    RAZON SOCIAL    ----   CUIT   ----   SALDO   ----\n{mensaje_plantilla}'
                 
     # Llamar a la función para enviar el mensaje a Javier Gabarini
     enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
