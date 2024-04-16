@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4d338b93-23f8-4e84-9604-fc2125ce69f6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>OrdenesCompra.py</StartupFile>
+    <StartupFile>DiferenciasPreciosOcFc.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DiferenciasPreciosOcFc.py" />
     <Compile Include="SaldosLimites.py" />
     <Compile Include="OrdenesCompra.py" />
   </ItemGroup>
