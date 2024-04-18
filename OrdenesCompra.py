@@ -1,5 +1,4 @@
 #-*- coding: utf-8 -*-
-
 import decimal
 from math import radians
 import os
@@ -35,6 +34,7 @@ sql_query = """
                 INNER JOIN [SegCabC] ON [SegTiposC].[spcscc_ID] = [SegCabC].[scc_ID]
                 WHERE [sdc_TipoIt] != 'L' AND 
                     [spctco_Cod] != 'PC' AND 
+	                [SegDetC].[sdc_FRecep] <= DATEADD(DAY, 15, GETDATE()) AND
                     ([sdc_CPendRtUM1] > 0 OR [sdc_CPendRtUM2] > 0) AND 
                     [spc_Nro] > 0 AND 
                     ([sdccon_Cod] IN ('015','015A','033','112','117','024','025') OR [sdcart_CodGen] > 0) AND 
@@ -81,39 +81,45 @@ contenido_html = """
       width: 100%;
     }
     th, td {
-      border: 1px solid black;
+      border: 1px solid #E5E7E9;
       padding: 8px;
       text-align: left;
     }
+    .cabecera{
+       background-color: #566573       
+    }
+    .cabecera-text{
+       color: #FDFEFE
+    }
     .atrasado-container{
-       background-color: red;
+       background-color: #CC0000;
     }
     .atrasado{
-       color: white;
+       color: #FFFFFF;
        font-style:italic;
     }
     .entrega-semana-container{
-       background-color: yellow;
+       background-color: #FF6600;
     }
     .entrega-semana{
-       color: black;
+       color: #FFFFF3;
     }
     .entrega-quincena-container{
-       background-color: green;
+       background-color: #FFFF99;
     }
     .entrega-quincena{
-       color: white;
+       color: #222222;
     }
   </style>
 </head>
 <body>
   <h2>Entregas pendientes</h2>
   <table>
-    <tr>
-      <th>Empresa</th>
-      <th>Orden Compras</th>
-      <th>Entrega</th>
-      <th>Estado</th>
+    <tr class="cabecera">
+      <th class="cabecera-text">EMPRESA</th>
+      <th class="cabecera-text">ORDEN COMPRAS</th>
+      <th class="cabecera-text">F. RECEPCION</th>
+      <th class="cabecera-text">ESTADO</th>
     </tr>
 """
 
@@ -170,46 +176,36 @@ try:
         diferencia =  fechaEntrega - fechaActual
         diferenciaDias = diferencia.days
         tiempoLimite = 15
+        contenido_html += f"""
+            <tr>
+              <td>({codProveedor}) {razonSocial}</td>
+              <td>{tipoComprobante} {int(numeroComprobante)}</td>
+              <td>{fechaEntrega.strftime('%d/%m/%Y')}</td>
+        """
         if diferenciaDias < tiempoLimite:        
             if diferenciaDias < 0:            
-                contenido_html += f"""
-                    <tr>
-                      <td>({codProveedor}) {razonSocial}</td>
-                      <td>{tipoComprobante} {int(numeroComprobante)}</td>
-                      <td>{fechaEntrega.strftime('%d/%m/%Y')}</td>                  
+                contenido_html += f"""                                    
                       <td class="atrasado-container"><span class="atrasado"><b>Atrasado por {diferenciaDias} d\u00EDas</b></td>
                     </tr>
                 """
                 mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - Atrasado por *{diferenciaDias*-1}* d\u00EDas\n'
         
             elif diferenciaDias > 0 and diferenciaDias <= 7:            
-                contenido_html += f"""
-                    <tr>
-                      <td>({codProveedor}) {razonSocial}</td>
-                      <td>{tipoComprobante} {int(numeroComprobante)}</td>
-                      <td>{fechaEntrega.strftime('%d/%m/%Y')}</td>                  
+                contenido_html += f"""                  
                       <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega en {diferenciaDias} d\u00EDas</b></span></td>
                     </tr>
                 """
                 mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - Entrega en *{diferenciaDias}* d\u00EDas\n'
             
             elif diferenciaDias > 7 and diferenciaDias <= 15:            
-                contenido_html += f"""
-                    <tr>
-                      <td>({codProveedor}) {razonSocial}</td>
-                      <td>{tipoComprobante} {int(numeroComprobante)}</td>
-                      <td>{fechaEntrega.strftime('%d/%m/%Y')}</td>                  
+                contenido_html += f"""                 
                       <td class="entrega-quincena-container"><span class="entrega-quincena"><b>Entrega en {diferenciaDias} d\u00EDas</b></span></td>
                     </tr>
                 """
                 mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - Entrega en *{diferenciaDias}* d\u00EDas\n'
             
             else:
-                contenido_html += f"""
-                    <tr>
-                      <td>({codProveedor}) {razonSocial}</td>
-                      <td>{tipoComprobante} {int(numeroComprobante)}</td>
-                      <td>{fechaEntrega.strftime('%d/%m/%Y')}</td>                  
+                contenido_html += f"""                  
                       <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega para hoy</b></span></td>
                     </tr>
                 """
@@ -239,8 +235,8 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 remitente = 'javieruroz@imcestari.com'
-destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
-# destinatario  = ['javieruroz@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
+destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Pendientes de recibir - RECLAMAR'
 msg = contenido_html
 

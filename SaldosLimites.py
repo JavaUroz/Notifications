@@ -43,22 +43,29 @@ contenido_html = """
       width: 100%;
     }
     th, td {
-      border: 1px solid black;
+      border: 1px solid #E5E7E9;
       padding: 8px;
       text-align: left;
     }
-    .saldo{
-       color: red;
+    .cabecera{
+       background-color: #566573       
+    }
+    .cabecera-text{
+       color: #FDFEFE
+    }    
+    .saldo-text{
+       color: #CC0000;
+       font-style:italic;
     }
   </style>
 </head>
 <body>
-  <h2>Estado de cuentas</h2>
+  <h2>SALDOS ADEUDADOS</h2>
   <table>
-    <tr>
-      <th>Empresa</th>
-      <th>CUIT</th>
-      <th>Saldo</th>
+    <tr class="cabecera">
+      <th class="cabecera-text">EMPRESA</th>
+      <th class="cabecera-text">CUIT</th>
+      <th class="cabecera-text">SALDO</th>
     </tr>
 """
 
@@ -167,20 +174,20 @@ try:
                     <tr>
                       <td><b>({localidad_formateado})</b> {razon_social}</td>
                       <td>{cuit_formateado}</td>
-                      <td><b><span class="saldo">${round(saldo, 2)}</span></td>
+                      <td><b><span class="saldo-text">$  {round(saldo, 2)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *({localidad_formateado})* {razon_social} - {cuit_formateado} - *${round(saldo, 2)}*\n'
+                mensaje_plantilla += f'{i}) *({localidad_formateado})* {razon_social} - {cuit_formateado} - *$ {round(saldo, 2)}*\n'
             # Mensaje de la plantilla
             else:
                 contenido_html += f"""
                     <tr>
                       <td>{razon_social}</td>
                       <td>{cuit_formateado}</td>
-                      <td><b><span class="saldo">${round(saldo, 2)}</span></td>
+                      <td><b><span class="saldo-text">$  {round(saldo, 2)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) {razon_social} - {cuit_formateado} - *${round(saldo, 2)}*\n'
+                mensaje_plantilla += f'{i}) {razon_social} - {cuit_formateado} - *$ {round(saldo, 2)}*\n'
             i += 1
             
     mensaje_completo = f'ATENCION PAGOS EXCEDIDOS: \n   -    RAZON SOCIAL    -   CUIT   -   SALDO   -\n{mensaje_plantilla}'
@@ -209,8 +216,8 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 remitente = 'javieruroz@imcestari.com'
-destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
-# destinatario  = ['javieruroz@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Pagos excedidos'
 msg = contenido_html
 

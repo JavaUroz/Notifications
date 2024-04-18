@@ -56,14 +56,20 @@ sql_query = """
                 INNER JOIN 
                     [SegDetC] detalleOrig ON relacion.[srcscc_IDOrig] = detalleOrig.[sdcscc_ID] AND detalleOrig.[sdcart_CodGen] = detalle.[sdcart_CodGen]
                 WHERE 
-                    tiposPri.[spctco_Cod] = 'OC' 
-                    AND tipos.[spctco_Cod] = 'FC'
+                    tiposPri.[spctco_Cod] IN ('OC', 'OCR', 'OCP', 'RT') 
+	                AND tipos.[spctco_Cod] NOT LIKE '%RT%'
+	                AND ((tipos.[spctco_Cod] = 'FC' AND detalle.[sdc_PrecioUn] > detallePri.[sdc_PrecioUn] * 1.03)OR 
+				                (tipos.[spctco_Cod] = 'NC' AND NOT
+					                ((detalleOrig.[sdc_PrecioUn] BETWEEN detalle.[sdc_PrecioUn] * 0.97 AND detalle.[sdc_PrecioUn] * 1.03)
+					                OR
+					                (detallePri.[sdc_PrecioUn] BETWEEN (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 0.97
+						                AND (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 1.02))))
                     AND detalle.[sdc_FRecep] <= DATEADD(YEAR, 1, GETDATE()) 
                     AND YEAR(detalle.[sdc_FechaOC]) = YEAR(GETDATE())
                     AND detalle.[sdc_ImpTot] != 0
                     AND detallePri.[sdc_ImpTot] != 0
-                    AND detalleOrig.[sdc_ImpTot] != 0
-                    AND detalle.[sdc_PrecioUn] > detallePri.[sdc_PrecioUn] * 1.2	
+                    AND detalleOrig.[sdc_ImpTot] != 0	
+    
                 ORDER BY 
                     detalle.[sdc_FRecep] DESC;
 """
@@ -94,56 +100,70 @@ contenido_html = """
        color: #FDFEFE
     }
     .excedido-container{
-       background-color: #FA8C05;
+       background-color: #CC0000;
     }
     .excedido-text{
-       color: #FDFEFE;
-       font-style:italic;
+       color: #FFFFFF;
     }
     .advertencia-container{
-       background-color: #FFDF80;
+       background-color: #FF6600;
     }
     .advertencia-text{
-       color: #17202A;
-    }    
+       color: #FFFFF3;
+    }
+    .aviso-container{
+       background-color: #FFFF99;
+    }
+    .aviso-text{
+       color: #222222;
+    }
+    .favor-container{
+       background-color: #CCFF66;
+    }
+    .favor-text{
+       color: #222222;
+    }
   </style>
 </head>
 <body>
   <h2>PRECIOS EXCEDIDOS DE OC A FC</h2>
   <table>
     <tr class="cabecera">
-      <th class="cabecera-text">Empresa</th>
-      <th class="cabecera-text">F. Recepcion</th>
-      <th class="cabecera-text">Articulo</th>      
-      <th class="cabecera-text">Orden Compra</th>
-      <th class="cabecera-text">Precio unit.</th>
-      <th class="cabecera-text">Factura</th>
-      <th class="cabecera-text">Precio unit.</th>
-      <th class="cabecera-text">Dif. Porc.</th>
+      <th class="cabecera-text">EMPRESA</th>
+      <th class="cabecera-text">F. RECEP</th>
+      <th class="cabecera-text">ARTICULO    </th>      
+      <th class="cabecera-text">ORDEN COMPRA / REMITO</th>
+      <th class="cabecera-text">PRECIO UNIT.</th>
+      <th class="cabecera-text">FACTURA / N. CREDITO</th>
+      <th class="cabecera-text">PRECIO UNIT.</th>
+      <th class="cabecera-text">DIFERENCIA (%)</th>
     </tr>
 """
+
 # Función para enviar mensaje de WhatsApp
-def enviar_mensaje_whatsapp(destinatario, mensaje):
-    # Split the message into chunks of 1600 characters or less
-    message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
-    for contador, chunk in enumerate(message_chunks):                
-        try:
-            message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = chunk,                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-            print('Mensaje enviado correctamente:', message.sid)
-            if contador >= 1:
-                message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-                print(f'Se alcanzo el l\u00EDmite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
-                break                
-        except Exception as e:
-            print(f'Ha ocurrido un error:\n', e)
+# region
+# def enviar_mensaje_whatsapp(destinatario, mensaje):
+#     # Split the message into chunks of 1600 characters or less
+#     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
+#     for contador, chunk in enumerate(message_chunks):                
+#         try:
+#             message = client.messages.create(
+#                                       from_='whatsapp:+14155238886',
+#                                       body = chunk,                              
+#                                       to=f'whatsapp:{destinatario}'
+#                                   )
+#             print('Mensaje enviado correctamente:', message.sid)
+#             if contador >= 1:
+#                 message = client.messages.create(
+#                                       from_='whatsapp:+14155238886',
+#                                       body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
+#                                       to=f'whatsapp:{destinatario}'
+#                                   )
+#                 print(f'Se alcanzo el l\u00EDmite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
+#                 break                
+#         except Exception as e:
+#             print(f'Ha ocurrido un error:\n', e)
+# endregion
 
 # Inicia la conexión
 try:
@@ -173,6 +193,15 @@ try:
         nroCompOrig = resultado[9]
         codComp = resultado[10]
         nroComp = resultado[11]
+        
+        # region Exclusiones
+        if (nroComp == '00000912' or 
+            nroComp == '00000911' or 
+            nroComp == '00033758' or
+            nroComp == '00008737'):
+            continue
+        # endregion
+
         precioUnitPri = resultado[12]
         precioUnitOrig = resultado[13]
         precioUnit = resultado[14]
@@ -183,46 +212,39 @@ try:
         
         diferenciaPorc =  ((precioUnitPri / precioUnit * 100) - 100)*(-1)
         
+        contenido_html += f"""
+                         <tr>
+                           <td>({int(codProveedor)}) {razonSocial}</td>
+                           <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
+                           <td>({codArtFormat}) - {descArticulo}</td>
+                           <td>{codCompPri} {int(nroCompPri)}</td>
+                           <td>$ {int(precioUnitPri)}</td>
+                           <td>{codComp} {int(nroComp)}</td>
+                           <td>$ {int(precioUnit)}</td>
+                     """
+        # mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} * {int(diferenciaPorc)} %*\n'
+
         if diferenciaPorc > 50:
-            contenido_html += f"""
-                         <tr>
-                           <td>({int(codProveedor)}) {razonSocial}</td>
-                           <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
-                           <td>({codArtFormat}) - {descArticulo}</td>
-                           <td>{codCompPri} {int(nroCompPri)}</td>
-                           <td>$ {int(precioUnitPri)}</td>
-                           <td>{codComp} {int(nroComp)}</td>
-                           <td>$ {int(precioUnit)}</td>                       
-                           <td class="excedido-container"><span class="excedido-text"><b>↑{int(diferenciaPorc)}%</b></td>
+            contenido_html += f"""                                                
+                           <td class="excedido-container"><span class="excedido-text"><b>↑ {int(diferenciaPorc)}%</b></td>
                          </tr>
                      """
+            
         elif diferenciaPorc > 30:
-            contenido_html += f"""
-                         <tr>
-                           <td>({int(codProveedor)}) {razonSocial}</td>
-                           <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
-                           <td>({codArtFormat}) - {descArticulo}</td>
-                           <td>{codCompPri} {int(nroCompPri)}</td>
-                           <td>$ {int(precioUnitPri)}</td>
-                           <td>{codComp} {int(nroComp)}</td>
-                           <td>$ {int(precioUnit)}</td>                        
-                           <td class="advertencia-container"><span class="advertencia-text"><b>↑{int(diferenciaPorc)}%</b></td>                           
+            contenido_html += f"""                                                 
+                           <td class="advertencia-container"><span class="advertencia-text"><b>↑ {int(diferenciaPorc)}%</b></td>                           
                          </tr>
-                     """
+                     """           
+        elif diferenciaPorc >= 0:
+            contenido_html += f"""                     
+                           <td class="aviso-container"><span class="aviso-text"><b>↑ {int(diferenciaPorc)}%</b></td>
+                         </tr>
+                     """            
         else:
-            contenido_html += f"""
-                         <tr>
-                           <td>({int(codProveedor)}) {razonSocial}</td>
-                           <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
-                           <td>({codArtFormat}) - {descArticulo}</td>
-                           <td>{codCompPri} {int(nroCompPri)}</td>
-                           <td>$ {int(precioUnitPri)}</td>
-                           <td>{codComp} {int(nroComp)}</td>
-                           <td>$ {int(precioUnit)}</td>                       
-                           <td><b>↑{int(diferenciaPorc)}%</b></td>
+            contenido_html += f"""                                              
+                           <td class="favor-container"><span class="favor-text">b>↓ {int(diferenciaPorc)}%</b></td>
                          </tr>
-                     """ 
-        mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} *↑{int(diferenciaPorc)}%*\n'
+                     """            
         i += 1
             
     mensaje_completo = f'DIFERENCIA PRECIOS OC/FC:\n  PROVEEDOR    -    COMPROBANTES    -   DIFERENCIA   -\n{mensaje_plantilla}'
@@ -235,14 +257,14 @@ try:
     
     len_mensaje = len(mensaje_completo)
     
-    try:    
-        # Llamar a la función para enviar el mensaje Javier Uroz
-        enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    except Exception as e:
-        print('Error al enviar mensaje: \n',e)
+    # try:    
+    #     # Llamar a la función para enviar el mensaje Javier Uroz
+    #     enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
+    # except Exception as e:
+    #     print('Error al enviar mensaje: \n',e)
         
-    # Prueba en cmd
-    print(mensaje_completo)
+    # # Prueba en cmd
+    # print(mensaje_completo)
 
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
