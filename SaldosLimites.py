@@ -14,7 +14,7 @@ import dotenv
 dotenv.load_dotenv()
 
 # Establecer el connection string
-connection_string = "Driver={SQL Server};Server=SERVIDOR;Database=SBDACEST;UID=sa;PWD=Sa2008R2;"
+connection_string = os.environ['CONNECTION_STRING']
 
 # Establecer la consulta SQL
 sql_query = """
