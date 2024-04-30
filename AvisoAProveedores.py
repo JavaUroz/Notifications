@@ -31,15 +31,15 @@ sql_query = """
                     [SegCabC].[sccpro_RazSoc],
                     [SegTiposC].[spctco_Cod],
                     [SegTiposC].[spc_Nro],
-	                [Proveed].[pro_EMail],
+                    [Proveed].[pro_EMail],
                     [SegDetC].[sdc_FRecep],
-	                [SegDetC].[sdcart_CodGen],
-	                [SegDetC].[sdccon_Cod],
-	                [SegDetC].[sdc_Desc],
-	                [SegDetC].[sdcume_Desc1],	
-	                [SegDetC].[sdc_CantUM1],
-	                [SegDetC].[sdcume_Desc2],
-	                [SegDetC].[sdc_CantUM2]
+                    [SegDetC].[sdcart_CodGen],
+                    [SegDetC].[sdccon_Cod],
+                    [SegDetC].[sdc_Desc],
+                    [SegDetC].[sdcume_Desc1],	
+                    [SegDetC].[sdc_CantUM1],
+                    [SegDetC].[sdcume_Desc2],
+                    [SegDetC].[sdc_CantUM2]
                 FROM [SBDACEST].[dbo].[SegTiposC]
                 INNER JOIN [SegDetC] ON [SegTiposC].[spcscc_ID] = [SegDetC].[sdcscc_ID]
                 INNER JOIN [SegCabC] ON [SegTiposC].[spcscc_ID] = [SegCabC].[scc_ID]
@@ -49,7 +49,7 @@ sql_query = """
                     [SegDetC].[sdc_FRecep] <= DATEADD(DAY, 15, GETDATE()) AND
                     ([sdc_CPendRtUM1] > 0 OR [sdc_CPendRtUM2] > 0) AND 
                     [spc_Nro] > 0 AND 
-                    ([sdccon_Cod] IN ('015','015A','033','112','117','024','025') OR [sdcart_CodGen] > 0) AND 
+                    ([sdccon_Cod] IN ('015','015A','033','112','117','024','025','206','003','113','212','003','224','019','213','099','118','012','014') OR [sdcart_CodGen] > 0) AND 
                     ([spctco_Cod] IN ('OC','OCP','OCR') OR 
                         ([spctco_Cod] = 'FC' AND [sccpro_Cod] IN ('008790', '010406'))
                     ) AND 
@@ -59,14 +59,25 @@ sql_query = """
                                         'Ferias y Exposiciones (IVA 21%)',
                                         'Materiales para la construcción',
                                         'Ferretería - Artículos varios',
-                                        'Muebles y Utiles') AND    
+                                        'Muebles y Utiles',
+						                'Regalos Empresariales',
+						                'Indumentaria',
+						                'Reparaciones varias',
+						                'Instalaciones (IVA 21%)',
+						                'Gastos de Exposición',
+						                'Mantenimiento Inmuebles (21%)',
+						                'Fletes y Acarreos',
+						                'Gastos Varios de Mantenimiento',
+						                'Gastos de Seguridad e Higiene',
+						                'Gastos de Fabricación',
+						                'Publicidad (IVA 21%)') AND    
                      ([sdc_Desc] NOT LIKE '%Materiales para Fabricación%' AND
                       [sdc_Desc] NOT LIKE '%Repuestos y Reparaciones%' AND
                       [sdc_Desc] NOT LIKE '%Ferias y Exposiciones%' AND
                       [sdc_Desc] NOT LIKE '%Materiales para la construcción%' AND
                       [sdc_Desc] NOT LIKE '%Ferretería - Artículos varios%' AND
                       [sdc_Desc] NOT LIKE '%Muebles y Utiles%' AND
-	                  [sdc_Desc] NOT LIKE '%mal facturada%')
+                      [sdc_Desc] NOT LIKE '%mal facturada%')
                     )
                 ORDER BY [SegCabC].[sccpro_Cod], [SegDetC].[sdc_FRecep];
 """
@@ -193,7 +204,7 @@ try:
                 
                 fecha_actual = datetime.now()
                 fecha_entrega_string = comprobante['fecha_entrega']
-                fecha_entrega = fecha_entrega = datetime.strptime(fecha_entrega_string, '%d/%m/%Y')
+                fecha_entrega = datetime.strptime(fecha_entrega_string, '%d/%m/%Y')
                 diferencia = fecha_entrega - fecha_actual
                 diferencia_dias = diferencia.days
                 

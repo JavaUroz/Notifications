@@ -33,24 +33,41 @@ sql_query = """
                 INNER JOIN [SegDetC] ON [SegTiposC].[spcscc_ID] = [SegDetC].[sdcscc_ID]
                 INNER JOIN [SegCabC] ON [SegTiposC].[spcscc_ID] = [SegCabC].[scc_ID]
                 WHERE [sdc_TipoIt] != 'L' AND 
-                    [spctco_Cod] != 'PC' AND 
-	                [SegDetC].[sdc_FRecep] <= DATEADD(DAY, 15, GETDATE()) AND
+                    [spctco_Cod] != 'PC' AND	
+                    [SegDetC].[sdc_FRecep] <= DATEADD(DAY, 15, GETDATE()) AND
                     ([sdc_CPendRtUM1] > 0 OR [sdc_CPendRtUM2] > 0) AND 
                     [spc_Nro] > 0 AND 
-                    ([sdccon_Cod] IN ('015','015A','033','112','117','024','025') OR [sdcart_CodGen] > 0) AND 
-                    ([spctco_Cod] IN ('OC','OCP','OCR') OR 
-                        ([spctco_Cod] = 'FC' AND [sccpro_Cod] IN ('008790', '010406'))
-                    ) AND 
-                    ([sdc_Desc] NOT IN ('Materiales para Fabricaci\u00f3n',
+                    ([sdccon_Cod] IN ('015','015A','033','112','117','024','025','206','003','113','212','224','019','213','099','118','012','014') OR [sdcart_CodGen] > 0) AND 
+                    ([spctco_Cod] IN ('OC','OCP','OCR')	
+	                OR ([spctco_Cod] = 'FC' AND [sccpro_Cod] IN ('005056','005090','005110','005541','005551','005601','005706','005729','005814','005883','005884','005918','005932','006347','006630','006644','006936',
+					                  '007267','007365','007941','008048','008192','008468','008491','008718','008781','008790','008841','008848','008863','008894','008981','009088','009140',
+					                  '009248','009296','009378','009443','009458','009486','009922','009959','009978','010003','010014','010050','010069','010075','010107','010112',
+					                  '010189','010190','010246','010269','010313','010397','010406','010436','010445','010473','010476','010485','010502','010519')
+					                  AND [SegDetC].[sdc_FRecep] > '2022-01-10 00:00:00.000')
+                    ) AND ([sdc_Desc] NOT IN ('Materiales para Fabricaci\u00f3n',
                                         'Materiales para Fabricaci\u00f3n (IVA 10,5%)',
                                         'Repuestos y Reparaciones (IVA 21%)',
                                         'Ferias y Exposiciones (IVA 21%)',
                                         'Materiales para la construcci\u00f3n',
                                         'Ferreter\u00EDa - Art\u00EDculos varios',
-                                        'Muebles y Utiles') AND    
+                                        'Muebles y Utiles',
+                                        'Regalos Empresariales',
+						                'Indumentaria',
+						                'Reparaciones varias',
+						                'Instalaciones (IVA 21%)',
+						                'Gastos de Exposici\u00f3n',
+						                'Mantenimiento Inmuebles (21%)',
+						                'Fletes y Acarreos',
+						                'Gastos Varios de Mantenimiento',
+						                'Gastos de Seguridad e Higiene',
+						                'Gastos de Fabricaci\u00f3n',
+						                'Publicidad (IVA 21%)') AND   
                      ([sdc_Desc] NOT LIKE '%Materiales para Fabricaci\u00f3n%' AND
                       [sdc_Desc] NOT LIKE '%Repuestos y Reparaciones%' AND
                       [sdc_Desc] NOT LIKE '%Ferias y Exposiciones%' AND
+                      [sdc_Desc] NOT LIKE '%Anticipo%' AND
+                      [sdc_Desc] NOT LIKE '%anticipo%' AND
+                      [sdc_Desc] NOT LIKE '%mal%' AND
                       [sdc_Desc] NOT LIKE '%Materiales para la construcci\u00f3n%' AND
                       [sdc_Desc] NOT LIKE '%Ferreter\u00EDa - Art\u00EDculos varios%' AND
                       [sdc_Desc] NOT LIKE '%Muebles y Utiles%')
@@ -234,9 +251,9 @@ try:
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
-remitente = 'javieruroz@imcestari.com'
-# destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
-destinatario  = ['javieruroz@imcestari.com']
+remitente = 'no-reply@imcestari.com'
+destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Pendientes de recibir - RECLAMAR'
 msg = contenido_html
 
