@@ -52,7 +52,7 @@ sql_query = """
                 WHERE
                     tipos.[spctco_Cod] = 'RT' AND
 	                proveed.procpg_Cod IN ('017','018','019') AND 
-	                CONVERT(date, detalle.[sdc_FRecep]) = CONVERT(date, GETDATE()) AND
+	                CONVERT(date, detalle.[sdc_FRecep]) BETWEEN DATEADD(day, -7, CONVERT(date, GETDATE())) AND DATEADD(day, 7, CONVERT(date, GETDATE())) AND
                     (sdcart_CodGen IS NOT NULL OR sdcart_CodGen IS NOT NULL)    
                 ORDER BY 
                     detalle.[sdc_FRecep] DESC;
@@ -223,7 +223,10 @@ if resultados != []:
     
     len_mensaje = len(mensaje_completo)
     
-    try:    
+    try:
+         # Llamar a la función para enviar el mensaje a Javier Gabarini
+        enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
+        
         # Llamar a la función para enviar el mensaje Javier Uroz
         enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
     except Exception as e:
