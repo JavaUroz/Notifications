@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4d338b93-23f8-4e84-9604-fc2125ce69f6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>AvisoAProveedores.py</StartupFile>
+    <StartupFile>ComprobantesDuplicadosIsolationForest.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,6 +23,8 @@
   <ItemGroup>
     <Compile Include="AvisoAProveedores.py" />
     <Compile Include="AvisoPagoCtraEntrega.py" />
+    <Compile Include="ComprobantesDuplicados.py" />
+    <Compile Include="ComprobantesDuplicadosIsolationForest.py" />
     <Compile Include="DiferenciasPreciosOcFc.py" />
     <Compile Include="SaldosLimites.py" />
     <Compile Include="OrdenesCompra.py" />
