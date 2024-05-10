@@ -11,7 +11,9 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
-# Cargar librer韆 para .env
+import csv
+import os
+# Cargar librer铆a para .env
 dotenv.load_dotenv()
 
 # Establecer el connection string
@@ -99,12 +101,18 @@ sql_query_resultados = """
 # Inicializar el modelo Isolation Forest
 modelo = IsolationForest()
 
-# Calcular la fecha actual y la fecha hace 5 a駉s
+# Calcular la fecha actual y la fecha hace 5 a帽os
 fecha_actual = datetime.now()
 
-# Inicia la conexi髇
+# Funci贸n para agregar excepciones al archivo CSV
+def agregar_a_csv(numero):
+    with open('excepciones.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([numero])
+
+# Inicia la conexi贸n
 try:
-    # Establecer la conexi髇 con la base de datos
+    # Establecer la conexi贸n con la base de datos
     conexion = pyodbc.connect(connection_string)
 
     # Crear un cursor para ejecutar la consulta SQL
@@ -123,7 +131,7 @@ try:
     # Crear un DataFrame basado en resultados
     df = pd.DataFrame(resultados_tuplas, columns=['Id', 'codPro', 'codComp', 'letr', 'ptoVta', 'nroComp', 'tipCbio', 'impMonCC', 'fechaEmision'])
     
-    # Filtrar los datos para los 鷏timos 3 meses
+    # Filtrar los datos para los 煤ltimos 3 meses
     fecha_limite = fecha_actual - timedelta(days=3*30)
     df_filt = df[df['fechaEmision'] >= fecha_limite]
 
@@ -134,18 +142,38 @@ try:
     # Entrenar el modelo
     modelo.fit(df_scaled)
 
-    # Obtener las etiquetas de anomal韆 para cada comprobante
+    # Obtener las etiquetas de anomal铆a para cada comprobante
     labels = modelo.predict(df_scaled)
 
-    # Identificar los comprobantes potencialmente err髇eos
+    # Identificar los comprobantes potencialmente err贸neos
     comprobantes_erroneos_indices = np.where(labels == -1)[0]
     comprobantes_erroneos = df.iloc[comprobantes_erroneos_indices]
+    
+    # Excepciones
+    excepciones = []
+    
+    # Ruta del archivo CSV
+    archivo_csv = 'excepciones.csv'
+    
+    # Verificar si el archivo CSV existe
+    if not os.path.exists(archivo_csv):
+        with open(archivo_csv, 'w', newline='') as file:
+            pass
+
+    # Leer los n煤meros de comprobante desde el archivo CSV y almacenarlos en la lista de excepciones
+    excepciones = []
+    with open(archivo_csv, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            for item in row:  # Iterar sobre los elementos de la fila
+                excepciones.append(int(item.strip()))  # Eliminar espacios en blanco y convertir a entero
+
 
     # Cabecera
     print("COMPROBANTES A REVISAR (ULTIMOS 3 MESES)\n")
-    print("---------------------------------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------------------------------------")
     print("Proveedor\t\t\t\tComprobante\t\tF. Emision Registracion\t\tImporte")
-    print("---------------------------------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------------------------------------")
     
     # Procesar los resultados
     for j, resultado_completo in enumerate(resultados_completos):        
@@ -158,7 +186,7 @@ try:
                 letrComprobante = resultado_completo[5]
                 puntoVenta = resultado[4]
                 nroComprobante = resultado[5]
-                if nroComprobante in (14996,18914,37752,30415,83865,13573,76725,13457,525,3220,83434,29938,12802,37266):            
+                if nroComprobante in excepciones:            
                     continue
                 tipoCambio = resultado[6]     
                 importeCC = resultado[7]
@@ -174,14 +202,19 @@ try:
 
             else:
                 continue
-            print(f"{int(codProveedor)} {razonSocial_formateada}\t\t{codComprobante}\t{int(puntoVenta)}\t{int(nroComprobante)}\t{fechaEmision_formateada} {fechaIngreso_formateada}\t\t${importeCC}") 
-    
-    print("---------------------------------------------------------------------------------------------------")
+            print(f"\n{int(codProveedor)} {razonSocial_formateada}\t\t{codComprobante}\t{int(puntoVenta)}\t{int(nroComprobante)}\t{fechaEmision_formateada} {fechaIngreso_formateada}\t\t${importeCC}") 
+            # Loop sobre los n煤meros de comprobante
+            
+            respuesta = input(f"\n驴Agregar excepci贸n? (s/n): ")
+            if respuesta.lower() == 's':
+                agregar_a_csv(nroComprobante)
+                
+    print("----------------------------------------------------------------------------------------------------------")
 
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 finally:
-    # Cerrar el cursor y la conexi髇
+    # Cerrar el cursor y la conexi贸n
     cursor.close()
     conexion.close()
     
