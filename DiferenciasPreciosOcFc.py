@@ -28,8 +28,8 @@ sql_query = """
                     cabecera.[sccpro_CUIT],
                     cabecera.[sccpro_RazSoc],
                     detalle.[sdc_FRecep],
-	                detalle.[sdcart_CodGen],
-	                detalle.[sdc_Desc],	
+                    detalle.[sdcart_CodGen],
+                    detalle.[sdc_Desc],	
                     tiposPri.[spctco_Cod] AS [Cod_Pri],
                     tiposPri.[spc_Nro] AS [Nro_Pri],
                     tiposOrig.[spctco_Cod] AS [Cod_Orig],
@@ -37,8 +37,8 @@ sql_query = """
                     tipos.[spctco_Cod] AS [Cod],
                     tipos.[spc_Nro] AS [Nro],	    
                     detallePri.[sdc_PrecioUn] AS [sdc_PrecioUnPri],
-	                detalleOrig.[sdc_PrecioUn] AS [sdc_PrecioUnOrig],
-	                detalle.[sdc_PrecioUn]
+                    detalleOrig.[sdc_PrecioUn] AS [sdc_PrecioUnOrig],
+                    detalle.[sdc_PrecioUn]
                 FROM 
                     [SBDACEST].[dbo].[SegRelDetC] relacion
                 INNER JOIN 
@@ -52,18 +52,18 @@ sql_query = """
                 INNER JOIN 
                     [SegDetC] detalle ON relacion.[srcscc_ID] = detalle.[sdcscc_ID]
                 INNER JOIN 
-                    [SegDetC] detallePri ON relacion.[srcscc_IDPri] = detallePri.[sdcscc_ID] AND detallePri.[sdcart_CodGen] = detalle.[sdcart_CodGen]
+                    [SegDetC] detallePri ON relacion.[srcscc_IDPri] = detallePri.[sdcscc_ID] AND detallePri.[sdcart_CodGen] = detalle.[sdcart_CodGen] AND detallePri.[sdc_NReng] = detalle.[sdc_NReng]
                 INNER JOIN 
-                    [SegDetC] detalleOrig ON relacion.[srcscc_IDOrig] = detalleOrig.[sdcscc_ID] AND detalleOrig.[sdcart_CodGen] = detalle.[sdcart_CodGen]
+                    [SegDetC] detalleOrig ON relacion.[srcscc_IDOrig] = detalleOrig.[sdcscc_ID] AND detalleOrig.[sdcart_CodGen] = detalle.[sdcart_CodGen] AND detalleOrig.[sdc_NReng] = detalle.[sdc_NReng]
                 WHERE 
                     tiposPri.[spctco_Cod] IN ('OC', 'OCR', 'OCP', 'RT') 
-	                AND tipos.[spctco_Cod] NOT LIKE '%RT%'
-	                AND ((tipos.[spctco_Cod] = 'FC' AND detalle.[sdc_PrecioUn] > detallePri.[sdc_PrecioUn] * 1.03)OR 
-				                (tipos.[spctco_Cod] = 'NC' AND NOT
-					                ((detalleOrig.[sdc_PrecioUn] BETWEEN detalle.[sdc_PrecioUn] * 0.97 AND detalle.[sdc_PrecioUn] * 1.03)
-					                OR
-					                (detallePri.[sdc_PrecioUn] BETWEEN (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 0.97
-						                AND (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 1.02))))
+                    AND tipos.[spctco_Cod] NOT LIKE '%RT%'
+                    AND ((tipos.[spctco_Cod] = 'FC' AND detalle.[sdc_PrecioUn] > detallePri.[sdc_PrecioUn] * 1.03)OR 
+                                (tipos.[spctco_Cod] != 'NC' AND NOT
+				                                ((detalleOrig.[sdc_PrecioUn] BETWEEN detalle.[sdc_PrecioUn] * 0.97 AND detalle.[sdc_PrecioUn] * 1.03)
+				                                OR
+				                                (detallePri.[sdc_PrecioUn] BETWEEN (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 0.97
+					                                AND (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 1.02))))
                     AND detalle.[sdc_FRecep] <= DATEADD(YEAR, 1, GETDATE()) 
                     AND YEAR(detalle.[sdc_FechaOC]) = YEAR(GETDATE())
                     AND detalle.[sdc_ImpTot] != 0
@@ -210,9 +210,14 @@ try:
         
         fechaActual = datetime.now()
         
-        diferenciaPorc =  ((precioUnitPri / precioUnit * 100) - 100)*(-1)
+        diferenciaPorc =  ((precioUnitPri / precioUnit * 100) - 100)*(-1)        
         
-        contenido_html += f"""
+
+        
+        # mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} * {int(diferenciaPorc)} %*\n'
+
+        if diferenciaPorc > 50:
+            contenido_html += f"""
                          <tr>
                            <td>({int(codProveedor)}) {razonSocial}</td>
                            <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
@@ -220,31 +225,50 @@ try:
                            <td>{codCompPri} {int(nroCompPri)}</td>
                            <td>$ {int(precioUnitPri)}</td>
                            <td>{codComp} {int(nroComp)}</td>
-                           <td>$ {int(precioUnit)}</td>
-                     """
-        # mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} * {int(diferenciaPorc)} %*\n'
-
-        if diferenciaPorc > 50:
-            contenido_html += f"""                                                
+                           <td>$ {int(precioUnit)}</td>                                                                   
                            <td class="excedido-container"><span class="excedido-text"><b>↑ {int(diferenciaPorc)}%</b></td>
                          </tr>
                      """
             
         elif diferenciaPorc > 30:
-            contenido_html += f"""                                                 
+            contenido_html += f"""                                                
+                        <tr>
+                           <td>({int(codProveedor)}) {razonSocial}</td>
+                           <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
+                           <td>({codArtFormat}) - {descArticulo}</td>
+                           <td>{codCompPri} {int(nroCompPri)}</td>
+                           <td>$ {int(precioUnitPri)}</td>
+                           <td>{codComp} {int(nroComp)}</td>
+                           <td>$ {int(precioUnit)}</td>   
                            <td class="advertencia-container"><span class="advertencia-text"><b>↑ {int(diferenciaPorc)}%</b></td>                           
                          </tr>
                      """           
-        elif diferenciaPorc >= 0:
-            contenido_html += f"""                     
+        elif diferenciaPorc > 3:
+            contenido_html += f"""
+                        <tr>
+                           <td>({int(codProveedor)}) {razonSocial}</td>
+                           <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
+                           <td>({codArtFormat}) - {descArticulo}</td>
+                           <td>{codCompPri} {int(nroCompPri)}</td>
+                           <td>$ {int(precioUnitPri)}</td>
+                           <td>{codComp} {int(nroComp)}</td>
+                           <td>$ {int(precioUnit)}</td>   
                            <td class="aviso-container"><span class="aviso-text"><b>↑ {int(diferenciaPorc)}%</b></td>
                          </tr>
                      """            
-        else:
-            contenido_html += f"""                                              
-                           <td class="favor-container"><span class="favor-text">b>↓ {int(diferenciaPorc)}%</b></td>
-                         </tr>
-                     """            
+        # elif diferenciaPorc > -4 and diferenciaPorc >= diferenciaPorc * 1.15:
+        #     contenido_html += f"""
+        #                 <tr>
+        #                    <td>({int(codProveedor)}) {razonSocial}</td>
+        #                    <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
+        #                    <td>({codArtFormat}) - {descArticulo}</td>
+        #                    <td>{codCompPri} {int(nroCompPri)}</td>
+        #                    <td>$ {int(precioUnitPri)}</td>
+        #                    <td>{codComp} {int(nroComp)}</td>
+        #                    <td>$ {int(precioUnit)}</td>
+        #                    <td class="favor-container"><span class="favor-text"><b>↓ {int(diferenciaPorc)}%</b></td>
+        #                  </tr>
+        #              """            
         i += 1
             
     mensaje_completo = f'DIFERENCIA PRECIOS OC/FC:\n  PROVEEDOR    -    COMPROBANTES    -   DIFERENCIA   -\n{mensaje_plantilla}'
@@ -270,8 +294,8 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 remitente = 'no-reply@imcestari.com'
-# destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
-destinatario  = ['javieruroz@imcestari.com']
+destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Diferencias precios OC-FC'
 msg = contenido_html
 

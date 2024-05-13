@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4d338b93-23f8-4e84-9604-fc2125ce69f6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ComprobantesDuplicadosIsolationForest.py</StartupFile>
+    <StartupFile>DiferenciasPreciosOcFc.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,8 +23,8 @@
   <ItemGroup>
     <Compile Include="AvisoAProveedores.py" />
     <Compile Include="AvisoPagoCtraEntrega.py" />
-    <Compile Include="ComprobantesDuplicados.py" />
-    <Compile Include="ComprobantesDuplicadosIsolationForest.py" />
+    <Compile Include="ComprobantesDuplicados\ComprobantesDuplicados.py" />
+    <Compile Include="ComprobantesDuplicados\ComprobantesDuplicadosIsolationForest.py" />
     <Compile Include="DiferenciasPreciosOcFc.py" />
     <Compile Include="SaldosLimites.py" />
     <Compile Include="OrdenesCompra.py" />
@@ -33,6 +33,9 @@
     <Content Include=".env" />
     <Content Include=".gitignore" />
     <Content Include="excepciones.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ComprobantesDuplicados\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

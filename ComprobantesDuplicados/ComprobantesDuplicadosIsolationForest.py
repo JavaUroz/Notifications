@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 from re import I
 from sklearn.ensemble import IsolationForest
 import os
@@ -12,12 +11,20 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
 import csv
-import os
+
 # Cargar librería para .env
 dotenv.load_dotenv()
 
 # Establecer el connection string
 connection_string = os.environ['CONNECTION_STRING']
+
+# Obtener la ruta absoluta del directorio del script actual
+directorio_script = os.path.dirname(os.path.abspath(__file__))
+
+# Cambiar al directorio del script
+os.chdir(directorio_script)
+
+print(os.getcwd())
 
 # Establecer la consulta SQL
 sql_query_resultados_completos = """                
@@ -55,7 +62,6 @@ sql_query_resultados_completos = """
 
               ORDER BY [CCO_FEMISION] DESC
 """
-
 
 # Establecer la consulta SQL
 sql_query_resultados = """
@@ -114,7 +120,7 @@ def agregar_a_csv(numero):
 try:
     # Establecer la conexión con la base de datos
     conexion = pyodbc.connect(connection_string)
-
+    
     # Crear un cursor para ejecutar la consulta SQL
     cursor = conexion.cursor()
     
@@ -153,22 +159,21 @@ try:
     excepciones = []
     
     # Ruta del archivo CSV
-    archivo_csv = 'excepciones.csv'
+    archivo_csv = 'excepciones.csv' 
     
     # Verificar si el archivo CSV existe
     if not os.path.exists(archivo_csv):
         with open(archivo_csv, 'w', newline='') as file:
-            pass
-
+            pass        
+   
     # Leer los números de comprobante desde el archivo CSV y almacenarlos en la lista de excepciones
     excepciones = []
     with open(archivo_csv, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             for item in row:  # Iterar sobre los elementos de la fila
-                excepciones.append(int(item.strip()))  # Eliminar espacios en blanco y convertir a entero
-
-
+                excepciones.append(int(item.strip()))  # Eliminar espacios en blanco y convertir a entero    
+    
     # Cabecera
     print("COMPROBANTES A REVISAR (ULTIMOS 3 MESES)\n")
     print("----------------------------------------------------------------------------------------------------------")
@@ -205,7 +210,7 @@ try:
             print(f"\n{int(codProveedor)} {razonSocial_formateada}\t\t{codComprobante}\t{int(puntoVenta)}\t{int(nroComprobante)}\t{fechaEmision_formateada} {fechaIngreso_formateada}\t\t${importeCC}") 
             # Loop sobre los números de comprobante
             
-            respuesta = input(f"\n¿Agregar excepción? (s/n): ")
+            respuesta = input(f"\n¿Agregar excepcion? (s/n): ")
             if respuesta.lower() == 's':
                 agregar_a_csv(nroComprobante)
                 
@@ -218,4 +223,4 @@ finally:
     cursor.close()
     conexion.close()
     
-input("Presione Enter para salir...")
+input("\n\"Enter\" para salir...")
