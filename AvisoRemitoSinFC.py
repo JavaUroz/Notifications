@@ -135,6 +135,7 @@ try:
     # Procesar la información de los proveedores y enviar correos
     for codProveedor, proveedor_info in proveedores.items():
         # Generar contenido HTML para el proveedor actual
+        # contenido_html = "<html><head><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #E5E7E9; padding: 8px; text-align: left; }</style></head><body><h2>Atención, existen artículos para su inmediata entrega.</h2><h3>Proveedor: {razon_social}</h3><table><tr><th>COMPROBANTES</th><th>CODIGO</th><th>DESCRIPCION</th><th>U.M.</th><th>UNIDADES</th><th>F. ENTREGA</th></tr>".format(razon_social=proveedor_info['razon_social'])
         contenido_html = """
             <html>
             <head>

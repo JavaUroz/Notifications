@@ -54,6 +54,7 @@ sql_query_resultados_completos = """
 	            OR [CCOPRO_RAZSOC] LIKE '%CR COMISIONES%'
 	            OR [CCOPRO_RAZSOC] LIKE '%ROSATTO%'
 	            OR [CCOPRO_RAZSOC] LIKE '%PILA%'
+                OR [CCOPRO_RAZSOC] LIKE '%REPUEST%'
 	            OR [CCOPRO_RAZSOC] LIKE '%SOLANO%')
 	            AND CCOTCO_COD NOT IN ('OP','CG','CIB') 
 	            AND SPCTCO_COD NOT LIKE 'NULL'
@@ -96,6 +97,7 @@ sql_query_resultados = """
         OR [CCOPRO_RAZSOC] LIKE '%CR COMISIONES%'
         OR [CCOPRO_RAZSOC] LIKE '%ROSATTO%'
         OR [CCOPRO_RAZSOC] LIKE '%PILA%'
+        OR [CCOPRO_RAZSOC] LIKE '%REPUEST%'
         OR [CCOPRO_RAZSOC] LIKE '%SOLANO%')
         AND CCOTCO_COD NOT IN ('OP','CG','CIB') 
         AND SPCTCO_COD NOT LIKE 'NULL'
@@ -104,8 +106,9 @@ sql_query_resultados = """
     ORDER BY [CCO_FEMISION] DESC
 """
 
-# Inicializar el modelo Isolation Forest
-modelo = IsolationForest()
+
+# Inicializar el modelo Isolation Forest con parámetros ajustados
+modelo = IsolationForest(n_estimators=100, contamination=0.5, random_state=42)
 
 # Calcular la fecha actual y la fecha hace 5 años
 fecha_actual = datetime.now()
@@ -212,7 +215,7 @@ try:
             
             respuesta = input(f"\n¿Agregar excepcion? (s/n): ")
             if respuesta.lower() == 's':
-                agregar_a_csv(nroComprobante)
+                agregar_a_csv(int(nroComprobante))
                 
     print("----------------------------------------------------------------------------------------------------------")
 

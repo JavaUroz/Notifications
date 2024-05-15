@@ -1,4 +1,5 @@
 ﻿#-*- coding: utf-8 -*-
+import csv
 import decimal
 from math import radians
 import os
@@ -26,6 +27,14 @@ dotenv.load_dotenv()
 # Establecer el connection string
 connection_string = os.environ['CONNECTION_STRING']
 
+# Obtener la ruta absoluta del directorio del script actual
+directorio_script = os.path.dirname(os.path.abspath(__file__))
+
+# Cambiar al directorio del script
+os.chdir(directorio_script)
+
+print(os.getcwd())
+
 # Establecer la consulta SQL
 sql_query_resultados = """                
                SELECT
@@ -52,6 +61,7 @@ sql_query_resultados = """
 	            OR [CCOPRO_RAZSOC] LIKE '%TRANSPORTE ESPINOSA S.R.L.%'
 	            OR [CCOPRO_RAZSOC] LIKE '%IROS TOUR%'
 	            OR [CCOPRO_RAZSOC] LIKE '%CR COMISIONES%'
+                OR [CCOPRO_RAZSOC] LIKE '%A. HARTRODT%'
 	            OR [CCOPRO_RAZSOC] LIKE '%ROSATTO%'
 	            OR [CCOPRO_RAZSOC] LIKE '%PILA%'
 	            OR [CCOPRO_RAZSOC] LIKE '%SOLANO%')
@@ -67,7 +77,7 @@ sql_query_matriz_erroneos = """
                SELECT
 	               --[CCO_ID] AS Id,
 	               --[CCOPRO_CUIT] AS cuit,
-                   CAST([CCOPRO_CODIN] AS INT) AS codPro,
+                   --CAST([CCOPRO_CODIN] AS INT) AS codPro,
 	               --[CCOPRO_RAZSOC] AS razSoc,
                    --[SPCTCO_COD] AS codComp,
 				   CASE 
@@ -94,27 +104,19 @@ sql_query_matriz_erroneos = """
 						WHEN [SCCMTCA_CODIGO] LIKE '%VEN%' THEN 2
 						-- Agrega más casos según sea necesario
 						ELSE 0 -- Valor por defecto si no coincide con ninguno de los casos anteriores
-					END AS tipCbio,
-                   ABS([CCO_IMPMONCC]) AS impMonCC
+					END AS tipCbio
+                   --ABS([CCO_IMPMONCC]) AS impMonCC
                    --ABS([CCO_SALDOMONCC]) AS monSald     
 	               --[CCOPTR_COD] AS codPTrab,
-                --   [PTR_DESC] AS desPTrab,
+                   --[PTR_DESC] AS desPTrab,
 	               --[CCOUSU_CODIGO] AS UsuarioPago,
-                --   [USU_NOMBRE] AS descUsuPago
+                   --[USU_NOMBRE] AS descUsuPago,
               FROM [SBDACEST].[dbo].[QRY_COMPRASPAGOS]
 
               WHERE
-	            ([CCOPRO_RAZSOC] LIKE '%GAS PIC%'
-	            OR [CCOPRO_RAZSOC] LIKE '%TRANSPORTE ESPINOSA S.R.L.%'
-	            OR [CCOPRO_RAZSOC] LIKE '%IROS TOUR%'
-	            OR [CCOPRO_RAZSOC] LIKE '%CR COMISIONES%'
-	            OR [CCOPRO_RAZSOC] LIKE '%ROSATTO%'
-	            OR [CCOPRO_RAZSOC] LIKE '%PILA%'
-				OR [CCOPRO_RAZSOC] LIKE '%HART%'
-	            OR [CCOPRO_RAZSOC] LIKE '%SOLANO%')
-	            AND CCOTCO_COD NOT IN ('OP','CG','CIB') 
+	            CCOTCO_COD NOT IN ('OP','CG','CIB') 
 	            AND SPCTCO_COD NOT LIKE 'NULL'
-	            AND [CCO_FEMISION] >= DATEADD(YEAR, -5, GETDATE())
+	            AND [CCO_FEMISION] >= DATEADD(YEAR, -10, GETDATE())
 				AND [CCO_SALDOMONCC] != 0
 
 				--AND [CCO_IMPMONCC]=-43952.42
@@ -125,73 +127,77 @@ sql_query_matriz_erroneos = """
               ORDER BY [CCO_FEMISION] DESC
 """
 
-# Establecer cliente con credenciales de SID y Token de Twilio 
-account_sid = os.environ['ACCOUNT_SID']
-auth_token = os.environ['AUTH_TOKEN']
-client = Client(account_sid, auth_token)
-mensaje_plantilla = ''
-i = 1
-indices_acumulados = []
-contenido_html = """
-<html>
-<head>
-  <style>
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    th, td {
-      border: 1px solid #E5E7E9;
-      padding: 8px;
-      text-align: left;
-    }
-    .cabecera{
-       background-color: #566573       
-    }
-    .cabecera-text{
-       color: #FDFEFE
-    }
-    .excedido-container{
-       background-color: #CC0000;
-    }
-    .excedido-text{
-       color: #FFFFFF;
-    }
-    .advertencia-container{
-       background-color: #FF6600;
-    }
-    .advertencia-text{
-       color: #FFFFF3;
-    }
-    .aviso-container{
-       background-color: #FFFF99;
-    }
-    .aviso-text{
-       color: #222222;
-    }
-    .favor-container{
-       background-color: #CCFF66;
-    }
-    .favor-text{
-       color: #222222;
-    }
-  </style>
-</head>
-<body>
-  <h2>COMROBANTES MAL REGISTRADOS</h2>
-  <table>
-    <tr class="cabecera">
-      <th class="cabecera-text">EMPRESA</th>
-      <th class="cabecera-text">COMPROBANTE</th>
-      <th class="cabecera-text">F. RECEP</th>            
-      <th class="cabecera-text">IMPORTE</th>
-      <th class="cabecera-text">SALDO</th>
-      <th class="cabecera-text">REGISTRADO</th>
-      <th class="cabecera-text">APLICADO</th>
-      <th class="cabecera-text">ESTADO</th>
-    </tr>
-"""
-
+# # Establecer cliente con credenciales de SID y Token de Twilio 
+# account_sid = os.environ['ACCOUNT_SID']
+# auth_token = os.environ['AUTH_TOKEN']
+# client = Client(account_sid, auth_token)
+# mensaje_plantilla = ''
+# i = 1
+# indices_acumulados = []
+# contenido_html = """
+# <html>
+# <head>
+#   <style>
+#     table {
+#       border-collapse: collapse;
+#       width: 100%;
+#     }
+#     th, td {
+#       border: 1px solid #E5E7E9;
+#       padding: 8px;
+#       text-align: left;
+#     }
+#     .cabecera{
+#        background-color: #566573       
+#     }
+#     .cabecera-text{
+#        color: #FDFEFE
+#     }
+#     .excedido-container{
+#        background-color: #CC0000;
+#     }
+#     .excedido-text{
+#        color: #FFFFFF;
+#     }
+#     .advertencia-container{
+#        background-color: #FF6600;
+#     }
+#     .advertencia-text{
+#        color: #FFFFF3;
+#     }
+#     .aviso-container{
+#        background-color: #FFFF99;
+#     }
+#     .aviso-text{
+#        color: #222222;
+#     }
+#     .favor-container{
+#        background-color: #CCFF66;
+#     }
+#     .favor-text{
+#        color: #222222;
+#     }
+#   </style>
+# </head>
+# <body>
+#   <h2>COMROBANTES MAL REGISTRADOS</h2>
+#   <table>
+#     <tr class="cabecera">
+#       <th class="cabecera-text">EMPRESA</th>
+#       <th class="cabecera-text">COMPROBANTE</th>
+#       <th class="cabecera-text">F. RECEP</th>            
+#       <th class="cabecera-text">IMPORTE</th>
+#       <th class="cabecera-text">SALDO</th>
+#       <th class="cabecera-text">REGISTRADO</th>
+#       <th class="cabecera-text">APLICADO</th>
+#       <th class="cabecera-text">ESTADO</th>
+#     </tr>
+# """
+# Función para agregar excepciones al archivo CSV
+def agregar_a_csv(numero):
+    with open('excepciones.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([numero])
 
 # Inicia la conexión
 try:
@@ -214,14 +220,14 @@ try:
     resultados_tuplas = [tuple(row) for row in resultados_erroneos]
     
     # Crear un DataFrame basado en resultados_tuplas
-    df = pd.DataFrame(resultados_tuplas, columns=['codPro', 'codComp', 'letr', 'ptoVta', 'nroComp', 'tipCbio', 'impMonCC'])
+    df = pd.DataFrame(resultados_tuplas, columns=['codComp', 'letr', 'ptoVta', 'nroComp', 'tipCbio'])
 
     # Normalizar los datos
     scaler = StandardScaler()
     df_scaled = scaler.fit_transform(df)
 
     # Definir el número de clusters
-    num_clusters = 2
+    num_clusters = 6
 
     # Inicializar el modelo K-means
     kmeans = KMeans(n_clusters=num_clusters)
@@ -247,13 +253,31 @@ try:
     # Identificar los comprobantes que están más allá del umbral como potencialmente erróneos
     comprobantes_erroneos = df[distancias > umbral]
     
-    cantidad_comp_erroneos = len(comprobantes_erroneos)
-    print("Cantidad de comprobantes erróneos capturados:", cantidad_comp_erroneos)
+    # cantidad_comp_erroneos = len(comprobantes_erroneos)
+    # print("Cantidad de comprobantes erróneos capturados:", cantidad_comp_erroneos)
     
-    print("Comprobantes potencialmente erróneos:")
-    print(comprobantes_erroneos)
+    # print("Comprobantes potencialmente erróneos:")
+    # print(comprobantes_erroneos)
 
-    breakIt=True
+     # Excepciones
+    excepciones = []
+    
+    # Ruta del archivo CSV
+    archivo_csv = 'excepciones.csv' 
+    
+    # Verificar si el archivo CSV existe
+    if not os.path.exists(archivo_csv):
+        with open(archivo_csv, 'w', newline='') as file:
+            pass        
+   
+    # Leer los números de comprobante desde el archivo CSV y almacenarlos en la lista de excepciones
+    excepciones = []
+    with open(archivo_csv, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            for item in row:  # Iterar sobre los elementos de la fila
+                excepciones.append(int(item.strip()))  # Eliminar espacios en blanco y convertir a entero    
+
     # Procesar los resultados
     for i, resultado in enumerate(resultados):
         if distancias[i] > umbral:
@@ -261,10 +285,12 @@ try:
             cuitProveedor = resultado[1]
             codProveedor = resultado[2]        
             razonSocial = resultado[3]
-            codComprobante = resultado[4]
+            codComprobante = resultado[4]            
             letrComprobante = resultado[5]
             puntoVenta = resultado[6]
             nroComprobante = resultado[7]
+            if int(nroComprobante) in excepciones:            
+                    continue
             fechaEmision = resultado[8]
             fechaIngreso = resultado[9]        
             importeCC = resultado[10]        
@@ -278,33 +304,42 @@ try:
             # Formatear las fechas en el formato deseado 'dd/MM/aaaa'
             fechaEmision_formateada = fechaEmision.strftime('%d/%m/%Y')
             fechaIngreso_formateada = fechaIngreso.strftime('%d/%m/%Y')
+            
+            # limitar 25 caracteres razon social
+            razonSocial_formateada = razonSocial[:15]
                         
             pagado = False
             if codUsuPago == 'JAVIER':
                 pagado =  True
-        
-            contenido_html += f"""
-                             <tr>
-                               <td>{int(codProveedor)} {cuitProveedor} {razonSocial}</td>
-                               <td>{codComprobante} {letrComprobante} {puntoVenta} {nroComprobante}</td>
-                               <td>{fechaEmision_formateada} / {fechaIngreso_formateada}</td>            
-                               <td>$ {round(importeCC, 2)}</td>
-                               <td>$ {round(importeSaldo, 2)}</td>
-                               <td>{descPuesto}</td>
-                               <td>{descUsuPago}</td>
-                               <td>{"PAGADO" if pagado else "NO PAGADO"}</td>
-                         """
+            
+            print(f"\n{int(codProveedor)} {razonSocial_formateada}\t\t{codComprobante}\t{int(puntoVenta)}\t{int(nroComprobante)}\t{fechaEmision_formateada} {fechaIngreso_formateada}\t\t${importeCC}")
+            
+            respuesta = input(f"\n¿Agregar excepcion? (s/n): ")
+            if respuesta.lower() == 's':
+                agregar_a_csv(int(nroComprobante))
+            
+            # contenido_html += f"""
+            #                  <tr>
+            #                    <td>{int(codProveedor)} {cuitProveedor} {razonSocial}</td>
+            #                    <td>{codComprobante} {letrComprobante} {puntoVenta} {nroComprobante}</td>
+            #                    <td>{fechaEmision_formateada} / {fechaIngreso_formateada}</td>            
+            #                    <td>$ {round(importeCC, 2)}</td>
+            #                    <td>$ {round(importeSaldo, 2)}</td>
+            #                    <td>{descPuesto}</td>
+            #                    <td>{descUsuPago}</td>
+            #                    <td>{"PAGADO" if pagado else "NO PAGADO"}</td>
+            #              """
             # mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} * {int(diferenciaPorc)} %*\n'
             
-            i += 1
+            # i += 1
             
     # mensaje_completo = f'DIFERENCIA PRECIOS OC/FC:\n  PROVEEDOR    -    COMPROBANTES    -   DIFERENCIA   -\n{mensaje_plantilla}'
     
-    contenido_html += """
-      </table>
-    </body>
-    </html>
-    """
+    # contenido_html += """
+    #   </table>
+    # </body>
+    # </html>
+    # """
     
     # len_mensaje = len(mensaje_completo)
     
@@ -320,35 +355,34 @@ try:
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
-remitente = 'no-reply@imcestari.com'
-# destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
-destinatario  = ['javieruroz@imcestari.com']
-asunto = 'Comprobantes con posibles errores'
-msg = contenido_html
+# remitente = 'no-reply@imcestari.com'
+# destinatario  = ['javieruroz@imcestari.com']
+# asunto = 'Comprobantes con posibles errores'
+# msg = contenido_html
 
-mensaje = MIMEMultipart()
+# mensaje = MIMEMultipart()
 
-mensaje['From'] = remitente
-mensaje['To'] = ", ".join(destinatario)
-mensaje['Subject'] = asunto
+# mensaje['From'] = remitente
+# mensaje['To'] = ", ".join(destinatario)
+# mensaje['Subject'] = asunto
 
-mensaje.attach(MIMEText(contenido_html, 'html'))
+# mensaje.attach(MIMEText(contenido_html, 'html'))
 
-# Datos
-username = os.environ['USERNAME']
-password = os.environ['PASSWORD']
+# # Datos
+# username = os.environ['USERNAME']
+# password = os.environ['PASSWORD']
 
-# Enviando el correo
-server = smtplib.SMTP_SSL('px000056.ferozo.com:465')
-# server.starttls()
-username=remitente
-server.login(username,password)
-try:
-    server.sendmail(remitente, destinatario, mensaje.as_string())
-    server.quit()
-    print('E- mail enviado exitosamente!')
-except Exception as e:
-    print('Ha ocurrido un error:\n', e)
+# # Enviando el correo
+# server = smtplib.SMTP_SSL('px000056.ferozo.com:465')
+# # server.starttls()
+# username=remitente
+# server.login(username,password)
+# try:
+#     server.sendmail(remitente, destinatario, mensaje.as_string())
+#     server.quit()
+#     print('E- mail enviado exitosamente!')
+# except Exception as e:
+#     print('Ha ocurrido un error:\n', e)
 
 # Cerrar el cursor y la conexión
 cursor.close()

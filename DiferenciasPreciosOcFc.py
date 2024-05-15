@@ -294,8 +294,8 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 remitente = 'no-reply@imcestari.com'
-destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
-# destinatario  = ['javieruroz@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
+destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Diferencias precios OC-FC'
 msg = contenido_html
 
