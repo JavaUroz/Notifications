@@ -34,6 +34,7 @@ directorio_script = os.path.dirname(os.path.abspath(__file__))
 os.chdir(directorio_script)
 
 print(os.getcwd())
+print("K-means")
 
 # Establecer la consulta SQL
 sql_query_resultados = """                
@@ -276,7 +277,13 @@ try:
         reader = csv.reader(file)
         for row in reader:
             for item in row:  # Iterar sobre los elementos de la fila
-                excepciones.append(int(item.strip()))  # Eliminar espacios en blanco y convertir a entero    
+                excepciones.append(int(item.strip()))  # Eliminar espacios en blanco y convertir a entero
+                
+    # Cabecera
+    print("COMPROBANTES A REVISAR (ULTIMOS 3 MESES)\n")
+    print("----------------------------------------------------------------------------------------------------------")
+    print("Proveedor\t\t\t\tComprobante\t\tF. Emision Registracion\t\tImporte")
+    print("----------------------------------------------------------------------------------------------------------")
 
     # Procesar los resultados
     for i, resultado in enumerate(resultados):
@@ -387,3 +394,5 @@ except pyodbc.Error as e:
 # Cerrar el cursor y la conexión
 cursor.close()
 conexion.close()
+
+input("\n\"Enter\" para salir...")

@@ -25,6 +25,7 @@ directorio_script = os.path.dirname(os.path.abspath(__file__))
 os.chdir(directorio_script)
 
 print(os.getcwd())
+print("Isolation-Forest")
 
 # Establecer la consulta SQL
 sql_query_resultados_completos = """                
