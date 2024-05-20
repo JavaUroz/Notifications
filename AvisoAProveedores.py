@@ -1,7 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import re
 import os
-from sre_constants import IN
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart

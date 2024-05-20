@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4d338b93-23f8-4e84-9604-fc2125ce69f6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ComprobantesDuplicados\ComprobantesDuplicadosK-means.py</StartupFile>
+    <StartupFile>RemitosPendFacturar.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="AvisoAProveedores.py" />
     <Compile Include="AvisoPagoCtraEntrega.py" />
+    <Compile Include="RemitosPendFacturar.py" />
     <Compile Include="ComprobantesDuplicados\ComprobantesDuplicadosIsolationForest.py" />
     <Compile Include="ComprobantesDuplicados\ComprobantesDuplicadosK-means.py" />
     <Compile Include="DiferenciasPreciosOcFc.py" />
