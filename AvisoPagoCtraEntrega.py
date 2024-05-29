@@ -25,37 +25,25 @@ connection_string = os.environ['CONNECTION_STRING']
 
 # Establecer la consulta SQL
 sql_query = """
-                SELECT DISTINCT
-                    cabecera.[sccpro_Cod],
-                    cabecera.[sccpro_CUIT],
-                    cabecera.[sccpro_RazSoc],
-                    detalle.[sdc_FRecep],
-	                tipos.[spctco_Cod] AS [Cod],
-                    tipos.[spc_Nro] AS [Nro],
-                    detalle.[sdcart_CodGen],
-                    detalle.[sdccon_Cod],
-                    detalle.[sdc_Desc],    
-                    detalle.[sdc_PrecioUn],
-	                detalle.[sdc_CantUM1],
-	                detalle.[sdc_CantUM2],
-	                detalle.[sdc_ImpTot]
-                FROM 
-                    [SBDACEST].[dbo].[SegRelDetC] relacion
-                INNER JOIN 
-                    [SegTiposC] tipos ON relacion.[srcscc_ID] = tipos.[spcscc_ID]
-                INNER JOIN 
-                    [SegCabC] cabecera ON relacion.[srcscc_ID] = cabecera.[scc_ID]
-                INNER JOIN 
-                    [SegDetC] detalle ON relacion.[srcscc_ID] = detalle.[sdcscc_ID]
-                INNER JOIN
-	                [Proveed] proveed ON cabecera.[sccpro_CUIT] = proveed.[pro_CUIT]
-                WHERE
-                    tipos.[spctco_Cod] = 'RT' AND
-	                proveed.procpg_Cod IN ('017','018','019') AND 
-	                CONVERT(date, detalle.[sdc_FRecep]) BETWEEN DATEADD(day, -7, CONVERT(date, GETDATE())) AND DATEADD(day, 7, CONVERT(date, GETDATE())) AND
-                    (sdcart_CodGen IS NOT NULL OR sdcart_CodGen IS NOT NULL)    
-                ORDER BY 
-                    detalle.[sdc_FRecep] DESC;
+                SELECT [CCOPRO_CODIN]
+	                  ,[CCOPRO_CUIT]
+	                  ,[CCOPRO_RAZSOC]
+	                  ,[CCO_FEMISION]
+	                  ,[CCO_FECMOD]
+	                  ,[CCOTCO_COD]
+	                  ,[CCO_NRO]
+                      ,[CCO_SALDOMONCC]
+                      ,[CCOCPG_COD]
+                      ,[CPG_DESC]
+	                  ,[CPG_OBSERV]
+                  FROM [SBDACEST].[dbo].[QRY_COMPRASPAGOS]
+
+                  WHERE DescPasadoCG LIKE '%NO PASADO%' AND
+		                CCOUSU_CODIGO LIKE 'JAVIERU' AND
+		                CCOCPG_COD IN ('017','018','019') AND
+		                CCOTCO_COD LIKE 'FC'
+
+                  ORDER BY cco_FEmision desc
 """
 
 # Establecer cliente con credenciales de SID y Token de Twilio 
@@ -114,13 +102,12 @@ contenido_html = """
       <th class="cabecera-text">Cod. Prov</th>
       <th class="cabecera-text">Cuit</th>
       <th class="cabecera-text">R. Social</th>
-      <th class="cabecera-text">F. Recepcion</th>
+      <th class="cabecera-text">F. Emision</th>
+      <th class="cabecera-text">F. Registracion</th>
       <th class="cabecera-text">Comprobante</th>
-      <th class="cabecera-text">Articulo</th>
-      <th class="cabecera-text">Descripcion</th>
-      <th class="cabecera-text">P. Unit.</th>
-      <th class="cabecera-text">Cantidad</th>
-      <th class="cabecera-text">Imp. Total</th>
+      <th class="cabecera-text">Importe</th>
+      <th class="cabecera-text">Cond. Pago</th>
+      <th class="cabecera-text">Observaciones</th>
     </tr>
 """
 
@@ -170,41 +157,29 @@ try:
         codProveedor = resultado[0]
         cuit = resultado[1]
         razonSocial = resultado[2]
-        fechaRecepcion = resultado[3]
-        codComprobante = resultado[4]
-        nroComprobante = resultado[5]
-        codArticulo = resultado[6]
-        codArtFormat = codArticulo[:2] + '.' + codArticulo[2:4] + '.' + codArticulo[4:7]
-        if codArticulo == None:
-            codArtFormat = ''
-        codConcepto = resultado[7]
-        if codConcepto == None:
-            codConcepto = ''
-        descripcion = resultado[8]
-        precioUnit = resultado[9]
-        cantUM1 = resultado[10]
-        if cantUM1 == NULL:
-            cantUM1 = ''
-        cantUM2 = resultado[11]
-        if cantUM2 == NULL:
-            cantUM2 = ''
-        impTotal= resultado[12]
+        fechaEmision = resultado[3]
+        fechaRegistracion = resultado[4]        
+        codComprobante = resultado[5]
+        nroComprobante = resultado[6]       
+        impTotal = resultado[7]
+        codCondPago = resultado[8]
+        descCondPago = resultado[9]
+        observaciones = resultado[10]
         
         contenido_html += f"""
             <tr>
               <td>{codProveedor}</td>
               <td>{cuit}</td>
               <td>{razonSocial}</td>
-              <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>
-              <td>{codComprobante} {nroComprobante}</td>
-              <td>{codArtFormat}{codConcepto}</td>
-              <td>{descripcion}</td>
-              <td>${precioUnit}</td>
-              <td>{cantUM1}{cantUM2}</td>
+              <td>{fechaEmision.strftime('%d/%m/%Y')}</td>
+              <td>{fechaRegistracion.strftime('%d/%m/%Y')}</td>
+              <td>{codComprobante} {nroComprobante}</td>              
               <td>${impTotal}</td>
+              <td>({codCondPago}) {descCondPago}</td>
+              <td>{observaciones}</td>
              </tr>
         """
-        mensaje_plantilla += f'{i}) {int(codProveedor)} {razonSocial[:25]} {codComprobante} {nroComprobante} - {codArtFormat}{codConcepto} {descripcion} - Entregado hoy!\n'
+        mensaje_plantilla += f'{i}) {int(codProveedor)} {razonSocial[:25]} {codComprobante} {nroComprobante} - {observaciones} \n'
         i += 1
             
     
@@ -213,7 +188,7 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 if resultados != []:
-    mensaje_completo = f'PENDIENTES A RECLAMAR:\n   -    RAZ\u00D3N SOCIAL    -   COMPROBANTE   -  ARTICULO  -   SITUACI\u00D3N   -\n{mensaje_plantilla}'
+    mensaje_completo = f'PENDIENTES A RECLAMAR:\n   -    RAZ\u00D3N SOCIAL    -   COMPROBANTE   -  OBSERVACIONES   -\n{mensaje_plantilla}'
     
     contenido_html += """
       </table>
