@@ -15,7 +15,7 @@ from datetime import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-# Cargar librer韆 para .env
+# Cargar librer铆a para .env
 dotenv.load_dotenv()
 
 # Establecer el connection string
@@ -140,7 +140,7 @@ contenido_html = """
     </tr>
 """
 
-# Funci髇 para enviar mensaje de WhatsApp
+# Funci贸n para enviar mensaje de WhatsApp
 def enviar_mensaje_whatsapp(destinatario, mensaje):
     # Split the message into chunks of 1600 characters or less
     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
@@ -167,9 +167,9 @@ def enviar_mensaje_whatsapp(destinatario, mensaje):
         except Exception as e:
             print(f'Ha ocurrido un error:\n', e)
 
-# Inicia la conexi髇
+# Inicia la conexi贸n
 try:
-    # Establecer la conexi髇 con la base de datos
+    # Establecer la conexi贸n con la base de datos
     conexion = pyodbc.connect(connection_string)
 
     # Crear un cursor para ejecutar la consulta SQL
@@ -240,7 +240,7 @@ try:
     len_mensaje = len(mensaje_completo)
     
     try:    
-        # Llamar a la funci髇 para enviar el mensaje Javier Uroz
+        # Llamar a la funci贸n para enviar el mensaje Javier Uroz
         enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
     except Exception as e:
         print('Error al enviar mensaje: \n',e)
@@ -281,6 +281,6 @@ try:
 except Exception as e:
     print('Ha ocurrido un error:\n', e)
 
-# Cerrar el cursor y la conexi髇
+# Cerrar el cursor y la conexi贸n
 cursor.close()
 conexion.close()

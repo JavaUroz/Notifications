@@ -5,6 +5,7 @@ import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 import dotenv
 from datetime import datetime
 
@@ -134,48 +135,98 @@ try:
     # Procesar la información de los proveedores y enviar correos
     for codProveedor, proveedor_info in proveedores.items():
         # Generar contenido HTML para el proveedor actual
+        # Cargar la imagen desde el archivo
+        with open('images/footer.jpg', 'rb') as fp:
+            img = MIMEImage(fp.read())
+            img.add_header('Content-ID', '<image1>')
         contenido_html = """
             <html>
             <head>
-              <style>
+              <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
+              <style>                
                 table {
+                  font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
                   border-collapse: collapse;
                   width: 100%;
+                }
+                h1, h2, h3 {
+                  color: #333333
                 }
                 th, td {
                   border: 1px solid #E5E7E9;
                   padding: 8px;
                   text-align: left;
                 }
-                .cabecera{
-                  background-color: #566573       
+                .cabecera {
+                  background-color: #FF0000;      
                 }
-                .cabecera-text{
-                  color: #FDFEFE
+                .titulo-aviso-container {
+                  background-color: #FFFFFF;                
                 }
-                .excedido-container{
+                .titulo-aviso-text {
+                  color: #333333;
+                  font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                  font-weight: 600;
+                  padding-bottom: 2px;
+                }
+                .cabecera-text {
+                  color: #FFFFFF;
+                  font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                  font-weight: 400;
+                }
+                .excedido-container {
                    background-color: #CC0000;
                 }
-                .excedido-text{
+                .excedido-text {
                    color: #FFFFFF;
+                   font-weight: 600;
                 }
-                .advertencia-container{
+                .advertencia-container {
                    background-color: #F2DF07;
+                }
+                .saludo-text {
+                  color: #000000;
+                  font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                  font-weight: 400;
+                }
+                .footer-container {
+                   padding-top: 20px;
+                }   
+                .footer-text-semibold {
+                    color: #000000;
+                    font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                    font-weight: 600; /* Semibold */
+                    font-size: 20px;
+                }
+                .footer-text-condensed {
+                    color: #333333;
+                    font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
+                    font-weight: 400; /* Regular Condensed */
+                }
+                .footer-text-condensed-italic {
+                    color: #336699;
+                    font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
+                    font-weight: 400; /* Regular Condensed */
+                    font-size: 11px;
+                    font-style: italic;
                 }
               </style>
             </head>
             <body>
-              <h2>Atención, existen artículos próximos a vencer/vencidos.</h2>              
+              <div class="titulo-aviso-container">
+                <h2 class="titulo-aviso-text">Aviso:</h2>              
+                <h3 class="titulo-aviso-text">Hay pedido/s próximo/s a vencerse o vencidos.</h3>
+              </div>
               <table>
                 <tr class="cabecera">
-                  <th class="cabecera-text">COMPROBANTES</th>
-                  <th class="cabecera-text">CODIGO</th>
-                  <th class="cabecera-text">DESCRIPCION</th>
-                  <th class="cabecera-text">U.M.1</th>
-                  <th class="cabecera-text">UNIDADES</th>
-                  <th class="cabecera-text">U.M.2</th>
-                  <th class="cabecera-text">UNIDADES</th>
-                  <th class="cabecera-text">F. ENTREGA</th>
+                  <th><p class="cabecera-text">COMPROBANTES</p></th>
+                  <th><p class="cabecera-text">CÓDIGO</p></th>
+                  <th><p class="cabecera-text">DESCRIPCIÓN</p></th>
+                  <th><p class="cabecera-text">U.M.1</p></th>
+                  <th><p class="cabecera-text">UNIDADES</p></th>
+                  <th><p class="cabecera-text">U.M.2</p></th>
+                  <th><p class="cabecera-text">UNIDADES</p></th>
+                  <th><p class="cabecera-text">F. ENTREGA</p></th>
                 </tr>
         """
 
@@ -226,11 +277,23 @@ try:
               </table>
               </br>
               </br>              
-              <p>Por favor informar a <a href="mailto:mcelli@imcestari.com">Mariana Celli - Compras</a> sobre el estado del pedido</p>
+              <p class="saludo-text">Por favor informar a <a href="mailto:mcelli@imcestari.com">Mariana Celli - Compras</a> sobre el estado del/los pedido/s.</p>
               </br>
-              <p>Saludos.</p>
+              <p class="saludo-text">Saludos.</p>
               </br>
-              <p>Industrias Metalúrgicas Cestari S.R.L.</p>
+              <hr>
+              <div class="footer-container">
+                 <img src="cid:image1">
+                 <p class="footer-text-semibold">INDUSTRIAS METALÚRGICAS CESTARI S.R.L.</p>
+                 <p class="footer-text-condensed">Av. Eva Perón 1068. Colón, Buenos Aires.</p>
+                 <p class="footer-text-condensed">República Argentina.</p>
+                 <p class="footer-text-condensed">Tel: +54 2473 421001 / 430490</p>
+                 <p class="footer-text-condensed-italic">Este mensaje es confidencial. \n
+                     Puede contener información amparada por el secreto comercial. Si usted \n
+                     ha recibido este e-mail por error, deberá eliminarlo de su sistema. No \n
+                     deberá copiar el mensaje ni divulgar su contenido a ninguna persona. \n
+                     Muchas gracias.</p>
+              </div>
             </body>
             </html>
         """               
@@ -243,15 +306,15 @@ try:
         if destinatario != []:
             destinatario.append('javieruroz@imcestari.com')
 
-        # De prueba
+        # # De prueba
         # destinatario = ['javieruroz@imcestari.com']
-       
-        asunto = 'Estado ordenes de compra próximas - IND. MET. CESTARI S.R.L.'
-
+        
+        asunto = 'Estado ordenes de compra próximas - IND. MET. CESTARI S.R.L.'        
         mensaje = MIMEMultipart()
         mensaje['From'] = remitente
         mensaje['To'] = ", ".join(destinatario)
         mensaje['Subject'] = asunto
+        mensaje.attach(img)
         mensaje.attach(MIMEText(contenido_html, 'html'))
 
         # Datos de autenticación

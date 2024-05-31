@@ -8,10 +8,16 @@ import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 import dotenv
 
-# Cargar librer韆 para .env
+# Cargar librer铆a para .env
 dotenv.load_dotenv()
+
+# Cargar la imagen desde el archivo
+with open('images/footer.jpg', 'rb') as fp:
+    img = MIMEImage(fp.read())
+    img.add_header('Content-ID', '<image1>')
 
 # Establecer el connection string
 connection_string = os.environ['CONNECTION_STRING']
@@ -37,30 +43,84 @@ indices_acumulados = []
 contenido_html = """
 <html>
 <head>
-  <style>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
+  <style>                
     table {
+      font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
       border-collapse: collapse;
       width: 100%;
+    }
+    h1, h2, h3 {
+      color: #333333
     }
     th, td {
       border: 1px solid #E5E7E9;
       padding: 8px;
       text-align: left;
     }
-    .cabecera{
-       background-color: #566573       
+    .cabecera {
+      background-color: #FF0000;      
     }
-    .cabecera-text{
-       color: #FDFEFE
-    }    
+    .titulo-aviso-container {
+      background-color: #FFFFFF;                
+    }
+    .titulo-aviso-text {
+      color: #333333;
+      font-family: 'Myriad Pro', 'Roboto', sans-serif;
+      font-weight: 600;
+      padding-bottom: 2px;
+    }
+    .cabecera-text {
+      color: #FFFFFF;
+      font-family: 'Myriad Pro', 'Roboto', sans-serif;
+      font-weight: 400;
+    }
+    .excedido-container {
+       background-color: #CC0000;
+    }
+    .excedido-text {
+       color: #FFFFFF;
+       font-weight: 600;
+    }
+    .advertencia-container {
+       background-color: #F2DF07;
+    }
+    .saludo-text {
+      color: #000000;
+      font-family: 'Myriad Pro', 'Roboto', sans-serif;
+      font-weight: 400;
+    }
+    .footer-container {
+       padding-top: 20px;
+    }   
+    .footer-text-semibold {
+        color: #000000;
+        font-family: 'Myriad Pro', 'Roboto', sans-serif;
+        font-weight: 600; /* Semibold */
+        font-size: 20px;
+    }
+    .footer-text-condensed {
+        color: #333333;
+        font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
+        font-weight: 400; /* Regular Condensed */
+    }
+    .footer-text-condensed-italic {
+        color: #336699;
+        font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
+        font-weight: 400; /* Regular Condensed */
+        font-size: 11px;
+        font-style: italic;
+    }
     .saldo-text{
-       color: #CC0000;
-       font-style:italic;
+      color: #CC0000;
+      font-style:italic;
     }
   </style>
 </head>
 <body>
-  <h2>SALDOS ADEUDADOS</h2>
+  <div class="titulo-aviso-container">
+      <h2 class="titulo-aviso-text">Saldos deudores</h2>
+  </div>  
   <table>
     <tr class="cabecera">
       <th class="cabecera-text">EMPRESA</th>
@@ -69,7 +129,7 @@ contenido_html = """
     </tr>
 """
 
-# Funci髇 para enviar mensaje de WhatsApp
+# Funci贸n para enviar mensaje de WhatsApp
 def enviar_mensaje_whatsapp(destinatario, mensaje):
     # Split the message into chunks of 1600 characters or less
     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
@@ -96,9 +156,9 @@ def enviar_mensaje_whatsapp(destinatario, mensaje):
         except Exception as e:
             print(f'Ha ocurrido un error:\n', e)
 
-# Inicia la conexi髇
+# Inicia la conexi贸n
 try:
-    # Establecer la conexi髇 con la base de datos
+    # Establecer la conexi贸n con la base de datos
     conexion = pyodbc.connect(connection_string)
 
     # Crear un cursor para ejecutar la consulta SQL
@@ -162,12 +222,12 @@ try:
             limite = -500000
         elif '33583193109' in cuit: # Plegamex
             limite = -50000
-        elif '23067223284' in cuit: # Oxit閏nica
+        elif '23067223284' in cuit: # Oxit茅cnica
             limite = -150000
         elif 'gas pic s.a. (lubricantes)' in razon_social.lower():
             limite = -100000        
     
-        # Comprueba si el saldo supera el l韒ite de la cuenta y ejecura la funci髇 verificar_saldos_y_enviar_notificaciones
+        # Comprueba si el saldo supera el l铆mite de la cuenta y ejecura la funci贸n verificar_saldos_y_enviar_notificaciones
         if saldo < limite:
             if '2720' in codigo_postal.lower():
                 contenido_html += f"""
@@ -194,6 +254,21 @@ try:
     
     contenido_html += """
       </table>
+      </br>
+      </br>
+      <hr>
+         <div class="footer-container">
+            <img src="cid:image1">
+            <p class="footer-text-semibold">INDUSTRIAS METAL脷RGICAS CESTARI S.R.L.</p>
+            <p class="footer-text-condensed">Av. Eva Per贸n 1068. Col贸n, Buenos Aires.</p>
+            <p class="footer-text-condensed">Rep煤blica Argentina.</p>
+            <p class="footer-text-condensed">Tel: +54 2473 421001 / 430490</p>
+            <p class="footer-text-condensed-italic">Este mensaje es confidencial. \n
+                Puede contener informaci贸n amparada por el secreto comercial. Si usted \n
+                ha recibido este e-mail por error, deber谩 eliminarlo de su sistema. No \n
+                deber谩 copiar el mensaje ni divulgar su contenido a ninguna persona. \n
+                Muchas gracias.</p>
+         </div>
     </body>
     </html>
     """
@@ -201,10 +276,10 @@ try:
     len_mensaje = len(mensaje_completo)
     
     try:        
-        # Llamar a la funci髇 para enviar el mensaje a Javier Gabarini
+        # Llamar a la funci贸n para enviar el mensaje a Javier Gabarini
         enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
     
-        # Llamar a la funci髇 para enviar el mensaje Javier Uroz
+        # Llamar a la funci贸n para enviar el mensaje Javier Uroz
         enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
     except Exception as e:
         print('Error al enviar mensaje: \n',e)
@@ -216,8 +291,8 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 remitente = 'no-reply@imcestari.com'
-# destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
-destinatario  = ['javieruroz@imcestari.com']
+destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Pagos excedidos'
 msg = contenido_html
 
@@ -226,7 +301,7 @@ mensaje = MIMEMultipart()
 mensaje['From'] = remitente
 mensaje['To'] = ", ".join(destinatario)
 mensaje['Subject'] = asunto
-
+mensaje.attach(img)
 mensaje.attach(MIMEText(contenido_html, 'html'))
 
 # Datos
@@ -245,6 +320,6 @@ try:
 except Exception as e:
     print('Ha ocurrido un error:\n', e)
 
-# Cerrar el cursor y la conexi髇
+# Cerrar el cursor y la conexi贸n
 cursor.close()
 conexion.close()

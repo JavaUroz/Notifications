@@ -5,6 +5,7 @@ import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 import dotenv
 from datetime import datetime
 
@@ -85,7 +86,9 @@ sql_query = """
 
 
 """
-
+with open('images/footer.jpg', 'rb') as fp:
+            img = MIMEImage(fp.read())
+            img.add_header('Content-ID', '<image1>')
 # Inicia la conexión
 try:
     # Establecer la conexión con la base de datos
@@ -139,26 +142,81 @@ try:
         contenido_html = """
             <html>
             <head>
-              <style>
+              <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
+              <style>                
                 table {
+                  font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
                   border-collapse: collapse;
                   width: 100%;
+                }
+                h1, h2, h3 {
+                  color: #333333
                 }
                 th, td {
                   border: 1px solid #E5E7E9;
                   padding: 8px;
                   text-align: left;
                 }
-                .cabecera{
-                  background-color: #566573       
+                .cabecera {
+                  background-color: #FF0000;      
                 }
-                .cabecera-text{
-                  color: #FDFEFE
-                }                
+                .titulo-aviso-container {
+                  background-color: #FFFFFF;                
+                }
+                .titulo-aviso-text {
+                  color: #333333;
+                  font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                  font-weight: 600;
+                  padding-bottom: 2px;
+                }
+                .cabecera-text {
+                  color: #FFFFFF;
+                  font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                  font-weight: 400;
+                }
+                .excedido-container {
+                   background-color: #CC0000;
+                }
+                .excedido-text {
+                   color: #FFFFFF;
+                   font-weight: 600;
+                }
+                .advertencia-container {
+                   background-color: #F2DF07;
+                }
+                .saludo-text {
+                  color: #000000;
+                  font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                  font-weight: 400;
+                }
+                .footer-container {
+                   padding-top: 20px;
+                }   
+                .footer-text-semibold {
+                    color: #000000;
+                    font-family: 'Myriad Pro', 'Roboto', sans-serif;
+                    font-weight: 600; /* Semibold */
+                    font-size: 20px;
+                }
+                .footer-text-condensed {
+                    color: #333333;
+                    font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
+                    font-weight: 400; /* Regular Condensed */
+                }
+                .footer-text-condensed-italic {
+                    color: #336699;
+                    font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
+                    font-weight: 400; /* Regular Condensed */
+                    font-size: 11px;
+                    font-style: italic;
+                }
               </style>
             </head>
             <body>
-              <h2>Atención, existen Remitos en nuestros sistemas pendientes de recepción de Facturas.</h2>              
+              <div class="titulo-aviso-container">
+                <h2 class="titulo-aviso-text">Aviso:</h2>              
+                <h3 class="titulo-aviso-text">Existen FACTURAS pendientes de recepción correspondiente a los siguientes REMITOS:</h3>
+              </div>              
               <table>
                 <tr class="cabecera">
                   <th class="cabecera-text">COMPROBANTES</th>
@@ -179,20 +237,23 @@ try:
             </table>
             </br>
             </br>              
-            <p>Por favor enviarlas a <a href="mailto:javieruroz@imcestari.com">Javier Uroz - Administración</a></p>
+            <p class="saludo-text">Por favor enviarlas a <a href="mailto:javieruroz@imcestari.com">Javier Uroz - Administración</a></p>
             </br>
-            <p>Saludos.</p>
-            </br>
-            <p>JAVIER UROZ</p>
-            <p>INDUSTRIAS METALÚRGICAS CESTARI S.R.L.</p>
-            <p>Calle 9 Nº 1068 entre 55 y 56. </p>
-            <p>C.P. 2720 - Colón (B.A.) - Argentina</p>
-            <p>Telefax +54 2473 430490</p>
-            </br>
-            <p>www.imcestari.com   |  Facebook   |   Twitter   |   Instagram</p>
-            </br>
-            <p>Este mensaje es confidencial. Puede contener información amparada por el secreto comercial. Si usted ha recibido este e-mail por error, deberá eliminarlo de su sistema. No deberá copiar el mensaje ni divulgar su contenido a ninguna persona. Muchas Gracias. </p>
-
+            <p class="saludo-text">Saludos.</p>
+            </br>           
+            <hr>
+              <div class="footer-container">
+                 <img src="cid:image1">
+                 <p class="footer-text-semibold">INDUSTRIAS METALÚRGICAS CESTARI S.R.L.</p>
+                 <p class="footer-text-condensed">Av. Eva Perón 1068. Colón, Buenos Aires.</p>
+                 <p class="footer-text-condensed">República Argentina.</p>
+                 <p class="footer-text-condensed">Tel: +54 2473 421001 / 430490</p>
+                 <p class="footer-text-condensed-italic">Este mensaje es confidencial. \n
+                     Puede contener información amparada por el secreto comercial. Si usted \n
+                     ha recibido este e-mail por error, deberá eliminarlo de su sistema. No \n
+                     deberá copiar el mensaje ni divulgar su contenido a ninguna persona. \n
+                     Muchas gracias.</p>
+              </div>
             </body>
             </html>
         """               
@@ -200,12 +261,12 @@ try:
         # Configurar y enviar el correo
         remitente = 'no-reply@imcestari.com'
         
-        # # Definitivos
+        # Definitivos
         destinatario = proveedor_info['email']
         if destinatario != []:
             destinatario.append('javieruroz@imcestari.com')
 
-        # De prueba
+        # # De prueba
         # destinatario = ['javieruroz@imcestari.com']
        
         asunto = 'Remitos pendientes de Facturar - IND. MET. CESTARI S.R.L.'
@@ -214,6 +275,7 @@ try:
         mensaje['From'] = remitente
         mensaje['To'] = ", ".join(destinatario)
         mensaje['Subject'] = asunto
+        mensaje.attach(img)
         mensaje.attach(MIMEText(contenido_html, 'html'))
 
         # Datos de autenticación

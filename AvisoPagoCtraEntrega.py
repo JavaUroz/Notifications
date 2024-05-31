@@ -12,17 +12,21 @@ import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 import dotenv
 from datetime import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-# Cargar librer韆 para .env
+# Cargar librer铆a para .env
 dotenv.load_dotenv()
 
 # Establecer el connection string
 connection_string = os.environ['CONNECTION_STRING']
-
+# Cargar la imagen desde el archivo
+with open('images/footer.jpg', 'rb') as fp:
+    img = MIMEImage(fp.read())
+    img.add_header('Content-ID', '<image1>')
 # Establecer la consulta SQL
 sql_query = """
                 SELECT [CCOPRO_CODIN]
@@ -96,7 +100,9 @@ contenido_html = """
   </style>
 </head>
 <body>
-  <h2>Aviso de recepcion de mercaderia - Pagos contra entrega</h2>
+  <div class="titulo-aviso-container">
+    <h2 class="titulo-aviso-text">Aviso de recepcion de mercaderia - Pagos contra entrega</h2>
+  </div>
   <table>
     <tr class="cabecera">
       <th class="cabecera-text">Cod. Prov</th>
@@ -111,7 +117,7 @@ contenido_html = """
     </tr>
 """
 
-# Funci髇 para enviar mensaje de WhatsApp
+# Funci贸n para enviar mensaje de WhatsApp
 def enviar_mensaje_whatsapp(destinatario, mensaje):
     # Split the message into chunks of 1600 characters or less
     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
@@ -138,9 +144,9 @@ def enviar_mensaje_whatsapp(destinatario, mensaje):
         except Exception as e:
             print(f'Ha ocurrido un error:\n', e)
 
-# Inicia la conexi髇
+# Inicia la conexi贸n
 try:
-    # Establecer la conexi髇 con la base de datos
+    # Establecer la conexi贸n con la base de datos
     conexion = pyodbc.connect(connection_string)
 
     # Crear un cursor para ejecutar la consulta SQL
@@ -192,6 +198,20 @@ if resultados != []:
     
     contenido_html += """
       </table>
+      </br>
+      <hr>
+      <div class="footer-container">
+         <img src="cid:image1">
+         <p class="footer-text-semibold">INDUSTRIAS METAL脷RGICAS CESTARI S.R.L.</p>
+         <p class="footer-text-condensed">Av. Eva Per贸n 1068. Col贸n, Buenos Aires.</p>
+         <p class="footer-text-condensed">Rep煤blica Argentina.</p>
+         <p class="footer-text-condensed">Tel: +54 2473 421001 / 430490</p>
+         <p class="footer-text-condensed-italic">Este mensaje es confidencial. \n
+             Puede contener informaci贸n amparada por el secreto comercial. Si usted \n
+             ha recibido este e-mail por error, deber谩 eliminarlo de su sistema. No \n
+             deber谩 copiar el mensaje ni divulgar su contenido a ninguna persona. \n
+             Muchas gracias.</p>
+      </div>
     </body>
     </html>
     """
@@ -199,10 +219,10 @@ if resultados != []:
     len_mensaje = len(mensaje_completo)
     
     try:
-         # Llamar a la funci髇 para enviar el mensaje a Javier Gabarini
+         # Llamar a la funci贸n para enviar el mensaje a Javier Gabarini
         enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
         
-        # Llamar a la funci髇 para enviar el mensaje Javier Uroz
+        # Llamar a la funci贸n para enviar el mensaje Javier Uroz
         enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
     except Exception as e:
         print('Error al enviar mensaje: \n',e)
@@ -212,8 +232,8 @@ if resultados != []:
 
 
     remitente = 'no-reply@imcestari.com'
-    destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
-    # destinatario  = ['javieruroz@imcestari.com']
+    # destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+    destinatario  = ['javieruroz@imcestari.com']
     asunto = 'Pagos contra entrega'
     msg = contenido_html
 
@@ -222,7 +242,7 @@ if resultados != []:
     mensaje['From'] = remitente
     mensaje['To'] = ", ".join(destinatario)
     mensaje['Subject'] = asunto
-
+    mensaje.attach(img)
     mensaje.attach(MIMEText(contenido_html, 'html'))
 
     # Datos
@@ -241,6 +261,6 @@ if resultados != []:
     except Exception as e:
         print('Ha ocurrido un error:\n', e)
 
-# Cerrar el cursor y la conexi髇
+# Cerrar el cursor y la conexi贸n
 cursor.close()
 conexion.close()
