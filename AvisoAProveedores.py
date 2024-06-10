@@ -3,6 +3,7 @@ import re
 import os
 import pyodbc
 import smtplib
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -83,6 +84,8 @@ sql_query = """
                 ORDER BY [SegCabC].[sccpro_Cod], [SegDetC].[sdc_FRecep];
 """
 
+# Contador de errores
+errorCount = 0
 # Inicia la conexión
 try:
     # Establecer la conexión con la base de datos
@@ -102,10 +105,10 @@ try:
 
     # Procesar los resultados
     for resultado in resultados:
+        # Comprobar si hay mas de 3 errores seguidos o si existen esos codProveedor y finaliza el for      
         codProveedor = resultado[0]
-        if codProveedor in ('006644', '006905'):
+        if codProveedor in ('006644', '006905') or errorCount >= 3:
             continue
-
         # Si el proveedor no está en el diccionario, crear una nueva entrada
         if codProveedor not in proveedores:
             proveedores[codProveedor] = {
@@ -214,8 +217,8 @@ try:
             </head>
             <body>
               <div class="titulo-aviso-container">
-                <h2 class="titulo-aviso-text">Aviso:</h2>              
-                <h3 class="titulo-aviso-text">Hay pedido/s próximo/s a vencerse o vencidos.</h3>
+                <h2 class="titulo-aviso-text">Estimados buenos días,</h2>              
+                <h3 class="titulo-aviso-text">enviamos una actualización sobre los artículos  que,  según nuestros registros, necesitarán de pronta atención. Por favor, verificar los siguientes pedidos pendientes de recibir:</h3>
               </div>
               <table>
                 <tr class="cabecera">
@@ -277,9 +280,9 @@ try:
               </table>
               </br>
               </br>              
-              <p class="saludo-text">Por favor informar a <a href="mailto:mcelli@imcestari.com">Mariana Celli - Compras</a> sobre el estado del/los pedido/s.</p>
+              <p class="saludo-text">Agradecemos si informaran a <a href="mailto:mcelli@imcestari.com">Mariana Celli - Compras</a> sobre el estado de este pedido.</p>
               </br>
-              <p class="saludo-text">Saludos.</p>
+              <p class="saludo-text">Saludos,</p>
               </br>
               <hr>
               <div class="footer-container">
@@ -299,12 +302,13 @@ try:
         """               
 
         # Configurar y enviar el correo
-        remitente = 'no-reply@imcestari.com'
+        remitente = 'javieruroz@imcestari.com'
         
         # Definitivos
         destinatario = proveedor_info['email']
         if destinatario != []:
             destinatario.append('javieruroz@imcestari.com')
+            destinatario.append('compras@imcestari.com')
 
         # # De prueba
         # destinatario = ['javieruroz@imcestari.com']
@@ -328,8 +332,11 @@ try:
             server.sendmail(remitente, destinatario, mensaje.as_string())
             server.quit()
             print('E- mail enviado exitosamente!')
+            time.sleep(60)
         except Exception as e:
             print('Ha ocurrido un error:\n', e)
 
+
 except pyodbc.Error as e:
     print('Ocurrió un error al conectar a la base de datos:', e)
+    errorCount += 1

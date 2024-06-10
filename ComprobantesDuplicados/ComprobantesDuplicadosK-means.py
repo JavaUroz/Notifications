@@ -6,7 +6,6 @@ import os
 from tokenize import Double
 from xml.dom.minidom import TypeInfo
 from xmlrpc.client import DateTime
-from twilio.rest import Client, content
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -128,72 +127,6 @@ sql_query_matriz_erroneos = """
               ORDER BY [CCO_FEMISION] DESC
 """
 
-# # Establecer cliente con credenciales de SID y Token de Twilio 
-# account_sid = os.environ['ACCOUNT_SID']
-# auth_token = os.environ['AUTH_TOKEN']
-# client = Client(account_sid, auth_token)
-# mensaje_plantilla = ''
-# i = 1
-# indices_acumulados = []
-# contenido_html = """
-# <html>
-# <head>
-#   <style>
-#     table {
-#       border-collapse: collapse;
-#       width: 100%;
-#     }
-#     th, td {
-#       border: 1px solid #E5E7E9;
-#       padding: 8px;
-#       text-align: left;
-#     }
-#     .cabecera{
-#        background-color: #566573       
-#     }
-#     .cabecera-text{
-#        color: #FDFEFE
-#     }
-#     .excedido-container{
-#        background-color: #CC0000;
-#     }
-#     .excedido-text{
-#        color: #FFFFFF;
-#     }
-#     .advertencia-container{
-#        background-color: #FF6600;
-#     }
-#     .advertencia-text{
-#        color: #FFFFF3;
-#     }
-#     .aviso-container{
-#        background-color: #FFFF99;
-#     }
-#     .aviso-text{
-#        color: #222222;
-#     }
-#     .favor-container{
-#        background-color: #CCFF66;
-#     }
-#     .favor-text{
-#        color: #222222;
-#     }
-#   </style>
-# </head>
-# <body>
-#   <h2>COMROBANTES MAL REGISTRADOS</h2>
-#   <table>
-#     <tr class="cabecera">
-#       <th class="cabecera-text">EMPRESA</th>
-#       <th class="cabecera-text">COMPROBANTE</th>
-#       <th class="cabecera-text">F. RECEP</th>            
-#       <th class="cabecera-text">IMPORTE</th>
-#       <th class="cabecera-text">SALDO</th>
-#       <th class="cabecera-text">REGISTRADO</th>
-#       <th class="cabecera-text">APLICADO</th>
-#       <th class="cabecera-text">ESTADO</th>
-#     </tr>
-# """
 # Función para agregar excepciones al archivo CSV
 def agregar_a_csv(numero):
     with open('excepciones.csv', 'a', newline='') as file:
@@ -323,73 +256,10 @@ try:
             
             respuesta = input(f"\n¿Agregar excepcion? (s/n): ")
             if respuesta.lower() == 's':
-                agregar_a_csv(int(nroComprobante))
-            
-            # contenido_html += f"""
-            #                  <tr>
-            #                    <td>{int(codProveedor)} {cuitProveedor} {razonSocial}</td>
-            #                    <td>{codComprobante} {letrComprobante} {puntoVenta} {nroComprobante}</td>
-            #                    <td>{fechaEmision_formateada} / {fechaIngreso_formateada}</td>            
-            #                    <td>$ {round(importeCC, 2)}</td>
-            #                    <td>$ {round(importeSaldo, 2)}</td>
-            #                    <td>{descPuesto}</td>
-            #                    <td>{descUsuPago}</td>
-            #                    <td>{"PAGADO" if pagado else "NO PAGADO"}</td>
-            #              """
-            # mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} * {int(diferenciaPorc)} %*\n'
-            
-            # i += 1
-            
-    # mensaje_completo = f'DIFERENCIA PRECIOS OC/FC:\n  PROVEEDOR    -    COMPROBANTES    -   DIFERENCIA   -\n{mensaje_plantilla}'
-    
-    # contenido_html += """
-    #   </table>
-    # </body>
-    # </html>
-    # """
-    
-    # len_mensaje = len(mensaje_completo)
-    
-    # try:    
-    #     # Llamar a la función para enviar el mensaje Javier Uroz
-    #     enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    # except Exception as e:
-    #     print('Error al enviar mensaje: \n',e)
-        
-    # # Prueba en cmd
-    # print(mensaje_completo)
+                agregar_a_csv(int(nroComprobante))  
 
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
-
-# remitente = 'no-reply@imcestari.com'
-# destinatario  = ['javieruroz@imcestari.com']
-# asunto = 'Comprobantes con posibles errores'
-# msg = contenido_html
-
-# mensaje = MIMEMultipart()
-
-# mensaje['From'] = remitente
-# mensaje['To'] = ", ".join(destinatario)
-# mensaje['Subject'] = asunto
-
-# mensaje.attach(MIMEText(contenido_html, 'html'))
-
-# # Datos
-# username = os.environ['USERNAME']
-# password = os.environ['PASSWORD']
-
-# # Enviando el correo
-# server = smtplib.SMTP_SSL('px000056.ferozo.com:465')
-# # server.starttls()
-# username=remitente
-# server.login(username,password)
-# try:
-#     server.sendmail(remitente, destinatario, mensaje.as_string())
-#     server.quit()
-#     print('E- mail enviado exitosamente!')
-# except Exception as e:
-#     print('Ha ocurrido un error:\n', e)
 
 # Cerrar el cursor y la conexión
 cursor.close()
