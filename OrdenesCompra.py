@@ -5,7 +5,6 @@ import os
 from tokenize import Double
 from xml.dom.minidom import TypeInfo
 from xmlrpc.client import DateTime
-from twilio.rest import Client, content
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -80,11 +79,6 @@ sql_query = """
                 ORDER BY [SegDetC].[sdc_FRecep];
 """
 
-# Establecer cliente con credenciales de SID y Token de Twilio 
-account_sid = os.environ['ACCOUNT_SID']
-auth_token = os.environ['AUTH_TOKEN']
-client = Client(account_sid, auth_token)
-
 mensaje_plantilla = ''
 i = 1
 indices_acumulados = []
@@ -140,33 +134,6 @@ contenido_html = """
     </tr>
 """
 
-# Función para enviar mensaje de WhatsApp
-def enviar_mensaje_whatsapp(destinatario, mensaje):
-    # Split the message into chunks of 1600 characters or less
-    message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
-    
-   
-    
-    
-    for contador, chunk in enumerate(message_chunks):                
-        try:
-            message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = chunk,                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-            print('Mensaje enviado correctamente:', message.sid)
-            if contador >= 1:
-                message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-                print(f'Se alcanzo el l\u00EDmite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
-                break                
-        except Exception as e:
-            print(f'Ha ocurrido un error:\n', e)
-
 # Inicia la conexión
 try:
     # Establecer la conexión con la base de datos
@@ -205,53 +172,33 @@ try:
                       <td class="atrasado-container"><span class="atrasado"><b>Atrasado por {diferenciaDias} d\u00EDas</b></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - Atrasado por *{diferenciaDias*-1}* d\u00EDas\n'
-        
             elif diferenciaDias > 0 and diferenciaDias <= 7:            
                 contenido_html += f"""                  
                       <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega en {diferenciaDias} d\u00EDas</b></span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - Entrega en *{diferenciaDias}* d\u00EDas\n'
-            
             elif diferenciaDias > 7 and diferenciaDias <= 15:            
                 contenido_html += f"""                 
                       <td class="entrega-quincena-container"><span class="entrega-quincena"><b>Entrega en {diferenciaDias} d\u00EDas</b></span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - Entrega en *{diferenciaDias}* d\u00EDas\n'
-            
             else:
                 contenido_html += f"""                  
                       <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega para hoy</b></span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {fechaEntrega.strftime('%d/%m/%Y')} - *Entrega para hoy!*\n'
-        i += 1
-            
-    mensaje_completo = f'PENDIENTES A RECLAMAR:\n   -    RAZ\u00D3N SOCIAL    -   F. ENTREGA   -   SITUACI\u00D3N   -\n{mensaje_plantilla}'
+            i += 1
     
     contenido_html += """
       </table>
     </body>
     </html>
     """
-    
-    len_mensaje = len(mensaje_completo)
-    
-    try:    
-        # Llamar a la función para enviar el mensaje Javier Uroz
-        enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    except Exception as e:
-        print('Error al enviar mensaje: \n',e)
-        
-    # Prueba en cmd
-    print(mensaje_completo)
 
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
-remitente = 'no-reply@imcestari.com'
+remitente = 'javieruroz@imcestari.com'
 destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
 # destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Pendientes de recibir - RECLAMAR'

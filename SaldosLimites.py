@@ -290,7 +290,7 @@ try:
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
-remitente = 'no-reply@imcestari.com'
+remitente = 'javieruroz@imcestari.com'
 destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
 # destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Pagos excedidos'

@@ -27,64 +27,72 @@ connection_string = os.environ['CONNECTION_STRING']
 
 # Establecer la consulta SQL
 sql_query = """                
-                SELECT DISTINCT
-		                SegCabC.sccpro_Cod, 
-		                SegCabC.sccpro_RazSoc,
-		                SegCabC.scc_FEmision,
-		                TiposDestino.spctco_Cod,
-		                TiposDestino.spc_CodPvt,
-		                TiposDestino.spc_Nro,
-		                Proveed.pro_EMail,
-		                TiposDestino.spctco_Cod + ' ' + TiposDestino.spc_Letra + ' ' + TiposDestino.spc_CodPvt + '-' + TiposDestino.spc_Nro
+SELECT DISTINCT
+        SegCabC.sccpro_Cod, 
+        SegCabC.sccpro_RazSoc,
+        SegCabC.scc_FEmision,
+        TiposDestino.spctco_Cod,
+        TiposDestino.spc_CodPvt,
+        TiposDestino.spc_Nro,
+        Proveed.pro_EMail,
+        TiposDestino.spctco_Cod + ' ' + TiposDestino.spc_Letra + ' ' + TiposDestino.spc_CodPvt + '-' + TiposDestino.spc_Nro
 
-                FROM ((((((((((((((SegCabC   
-                     INNER JOIN ParamGen ON SegCabC.sccemp_Codigo = ParamGen.pgeemp_Codigo
-                     INNER JOIN SegRelDetC ON SegCabC.scc_ID = SegRelDetC.srcscc_ID
-                     INNER JOIN SegTiposC TiposOrigen ON SegRelDetC.srcscc_IDPri = TiposOrigen.spcscc_ID     
-		                INNER JOIN CondPago ON (SegCabC.scccpg_Cod = CondPago.cpg_Cod)) 
-		                INNER JOIN SegTiposC TiposDestino ON (SegCabC.sccemp_Codigo = TiposDestino.spcemp_Codigo) AND 
-    	                 (SegCabC.sccsuc_Cod = TiposDestino.spcsuc_Cod) AND  
-		                 (SegCabC.scc_ID = TiposDestino.spcscc_ID)) 
-		                 INNER JOIN TipComp ON (TipComp.tco_Cod = TiposDestino.spctco_Cod) AND 
-			                (TipComp.tco_Circuito = TiposDestino.spctco_Circuito)) 
-			                INNER JOIN SegDetC ON (SegCabC.sccemp_Codigo = SegDetC.sdcemp_Codigo) AND
-				                (SegCabC.sccsuc_Cod = SegDetC.sdcsuc_Cod) AND 
-				                (SegCabC.scc_ID = SegDetC.sdcscc_ID)) 
-				                INNER JOIN mon ON (SegCabC.sccmon_codigo = mon.mon_codigo)) 
-					                LEFT JOIN Proveed ON (SegCabC.sccpro_Cod = Proveed.pro_Cod)) 
-						                LEFT JOIN Conceptos ON (Conceptos.con_Cod = SegDetC.sdccon_Cod)) 
-							                LEFT JOIN Articulos ON (Articulos.art_CodGen = SegDetC.sdcart_CodGen AND 
-								                Articulos.art_CodEle1 = SegDetC.sdcart_CodEle1 AND 
-								                Articulos.art_CodEle2 = SegDetC.sdcart_CodEle2 AND 
-								                Articulos.art_CodEle3 = SegDetC.sdcart_CodEle3)) 
-								                LEFT JOIN ClasArt ON (ClasArt.cla_Cod = Articulos.artcla_Cod)) 
-								                 LEFT JOIN UniMed ON (SegDetC.sdcume_Cod1 = UniMed.ume_Cod)) 
-									                LEFT JOIN UniMed AS UniMed_2 ON (SegDetC.sdcume_Cod2 = UniMed_2.ume_Cod)) 
-									                 LEFT JOIN TIva ON (SegDetC.sdctiv_Cod = TIva.tiv_Cod)) 
-									                  LEFT JOIN NoGrav ON (SegDetC.sdcngr_Cod = NoGrav.ngr_Cod)) 
-									                   LEFT JOIN ArtProv ON (Articulos.art_CodGen = ArtProv.aprart_CodGen AND 
-										                Articulos.art_CodEle1 = ArtProv.aprart_CodEle1 AND 
-										                Articulos.art_CodEle2 = ArtProv.aprart_CodEle2 AND 
-										                Articulos.art_CodEle3 = ArtProv.aprart_CodEle3 AND 
-										                Articulos.artpro_Cod = ArtProv.aprpro_Cod)) 
+FROM ((((((((((((((SegCabC   
+     INNER JOIN ParamGen ON SegCabC.sccemp_Codigo = ParamGen.pgeemp_Codigo
+     INNER JOIN SegRelDetC ON SegCabC.scc_ID = SegRelDetC.srcscc_ID
+     INNER JOIN SegTiposC TiposOrigen ON SegRelDetC.srcscc_IDPri = TiposOrigen.spcscc_ID     
+        INNER JOIN CondPago ON (SegCabC.scccpg_Cod = CondPago.cpg_Cod)) 
+        INNER JOIN SegTiposC TiposDestino ON (SegCabC.sccemp_Codigo = TiposDestino.spcemp_Codigo) AND 
+         (SegCabC.sccsuc_Cod = TiposDestino.spcsuc_Cod) AND  
+         (SegCabC.scc_ID = TiposDestino.spcscc_ID)) 
+         INNER JOIN TipComp ON (TipComp.tco_Cod = TiposDestino.spctco_Cod) AND 
+            (TipComp.tco_Circuito = TiposDestino.spctco_Circuito)) 
+            INNER JOIN SegDetC ON (SegCabC.sccemp_Codigo = SegDetC.sdcemp_Codigo) AND
+                (SegCabC.sccsuc_Cod = SegDetC.sdcsuc_Cod) AND 
+                (SegCabC.scc_ID = SegDetC.sdcscc_ID)) 
+                INNER JOIN mon ON (SegCabC.sccmon_codigo = mon.mon_codigo)) 
+				                LEFT JOIN Proveed ON (SegCabC.sccpro_Cod = Proveed.pro_Cod)) 
+					                LEFT JOIN Conceptos ON (Conceptos.con_Cod = SegDetC.sdccon_Cod)) 
+						                LEFT JOIN Articulos ON (Articulos.art_CodGen = SegDetC.sdcart_CodGen AND 
+							                Articulos.art_CodEle1 = SegDetC.sdcart_CodEle1 AND 
+							                Articulos.art_CodEle2 = SegDetC.sdcart_CodEle2 AND 
+							                Articulos.art_CodEle3 = SegDetC.sdcart_CodEle3)) 
+							                LEFT JOIN ClasArt ON (ClasArt.cla_Cod = Articulos.artcla_Cod)) 
+							                 LEFT JOIN UniMed ON (SegDetC.sdcume_Cod1 = UniMed.ume_Cod)) 
+								                LEFT JOIN UniMed AS UniMed_2 ON (SegDetC.sdcume_Cod2 = UniMed_2.ume_Cod)) 
+								                 LEFT JOIN TIva ON (SegDetC.sdctiv_Cod = TIva.tiv_Cod)) 
+								                  LEFT JOIN NoGrav ON (SegDetC.sdcngr_Cod = NoGrav.ngr_Cod)) 
+								                   LEFT JOIN ArtProv ON (Articulos.art_CodGen = ArtProv.aprart_CodGen AND 
+									                Articulos.art_CodEle1 = ArtProv.aprart_CodEle1 AND 
+									                Articulos.art_CodEle2 = ArtProv.aprart_CodEle2 AND 
+									                Articulos.art_CodEle3 = ArtProv.aprart_CodEle3 AND 
+									                Articulos.artpro_Cod = ArtProv.aprpro_Cod)) 
 
-                WHERE (sdc_TipoIt = 'A' OR sdc_TipoIt = 'C') AND 
-	                  ((sdc_CPendFcUM1 >  0 OR  sdc_CPendFcUM2 >  0) OR  
-	                  (tco_TipoFijo='RD' AND scc_GenPendFc=1 And scc_GenPendRt=0 And (sdc_CPendFcUM1 <>  0 OR  sdc_CPendFcUM2 <>  0))) AND
-	                  (sdc_ActStock <> '5') AND Not 
-	                  (scc_OrigenComp = 'P' And TiposDestino.spctco_TipoFijo = 'OC' And TiposDestino.spc_EstadoAutoriz Is Null) AND 
-	                  (scc_CumpXPgm = 0) AND (scc_Estado <> 'X') AND 
-	                  (TiposDestino.spc_Orig <> 'R' AND TiposDestino.spc_Orig <> 'C') AND 	  
-	                  TiposDestino.spctco_Cod in ('RT', 'FC') AND (TiposDestino.spc_EstadoAutoriz != 'R' OR TiposDestino.spc_EstadoAutoriz IS NULL) AND
-	                  TipComp.tco_Circuito = 'C' AND NOT
-	                  TiposOrigen.spctco_Cod LIKE 'OCR' AND
-	                  SegCabC.scc_FEmision >= DATEADD(YEAR, -1, GETDATE()) AND NOT
-	                  SegCabC.sccpro_Cod IN ('006644') AND NOT
-	                  TiposDestino.spc_Nro IN ('00095975','00003493','00172178','00171574','00010365','00152502','00014727','00014679','00013555','00012181','00015909','00559307','00063537','00002590','00002470','00002642','00000333','04122023','00000300','00000256','00014180','00004713','00291606','00056841','00065391','00061422','00060907','00060741','00000278','00000276','00000200','00084589','00000303','00009294','00009265','00006383','29122023','00172260','00170097','00165832','00165834','00165838','00164795','00162525','02052024','08042024','00085854','00010065','00001227','00001222','00001189','00001186','00002033','00254774')
+WHERE (sdc_TipoIt = 'A' OR sdc_TipoIt = 'C') AND 
+      ((sdc_CPendFcUM1 >  0 OR  sdc_CPendFcUM2 >  0) OR  
+      (tco_TipoFijo='RD' AND scc_GenPendFc=1 And scc_GenPendRt=0 And (sdc_CPendFcUM1 <>  0 OR  sdc_CPendFcUM2 <>  0))) AND
+      (sdc_ActStock <> '5') AND Not 
+      (scc_OrigenComp = 'P' And TiposDestino.spctco_TipoFijo = 'OC' And TiposDestino.spc_EstadoAutoriz Is Null) AND 
+      (scc_CumpXPgm = 0) AND (scc_Estado <> 'X') AND 
+      (TiposDestino.spc_Orig <> 'R' AND TiposDestino.spc_Orig <> 'C') AND 	  
+      TiposDestino.spctco_Cod in ('RT', 'FC') AND (TiposDestino.spc_EstadoAutoriz != 'R' OR TiposDestino.spc_EstadoAutoriz IS NULL) AND
+      TipComp.tco_Circuito = 'C' AND NOT
+      TiposOrigen.spctco_Cod LIKE 'OCR' AND
+      SegCabC.scc_FEmision >= DATEADD(YEAR, -1, GETDATE()) AND NOT
+      SegCabC.sccpro_Cod IN (010406) AND NOT
+      TiposDestino.spc_Nro IN ('00095975','00003493','00172178','00171574','00010365',
+							   '00152502','00014727','00014679','00013555','00012181',
+							   '00015909','00559307','00063537','00002590','00002470',
+							   '00002642','00000333','04122023','00000300','00000256',
+							   '00014180','00004713','00291606','00056841','00065391',
+							   '00061422','00060907','00060741','00000278','00000276',
+							   '00000200','00084589','00000303','00009294','00009265',
+							   '00006383','29122023','00172260','00170097','00165832',
+							   '00165834','00165838','00164795','00162525','02052024',
+							   '08042024','00085854','00010065','00001227','00001222',
+							   '00001189','00001186','00002033','00254774')
 	  
-                ORDER BY SegCabC.sccpro_RazSoc, SegCabC.scc_FEmision DESC
-
-
+ORDER BY SegCabC.sccpro_RazSoc, SegCabC.scc_FEmision DESC
 """
 with open('images/footer.jpg', 'rb') as fp:
             img = MIMEImage(fp.read())
@@ -259,7 +267,7 @@ try:
         """               
 
         # Configurar y enviar el correo
-        remitente = 'no-reply@imcestari.com'
+        remitente = 'javieruroz@imcestari.com'
         
         # Definitivos
         destinatario = proveedor_info['email']

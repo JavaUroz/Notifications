@@ -231,9 +231,9 @@ if resultados != []:
     print(mensaje_completo)    
 
 
-    remitente = 'no-reply@imcestari.com'
-    # destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
-    destinatario  = ['javieruroz@imcestari.com']
+    remitente = 'javieruroz@imcestari.com'
+    destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+    # destinatario  = ['javieruroz@imcestari.com']
     asunto = 'Pagos contra entrega'
     msg = contenido_html
 

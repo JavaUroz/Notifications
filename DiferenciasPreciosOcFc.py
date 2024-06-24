@@ -5,7 +5,6 @@ import os
 from tokenize import Double
 from xml.dom.minidom import TypeInfo
 from xmlrpc.client import DateTime
-from twilio.rest import Client, content
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -73,10 +72,7 @@ sql_query = """
                 ORDER BY 
                     detalle.[sdc_FRecep] DESC;
 """
-# Establecer cliente con credenciales de SID y Token de Twilio 
-account_sid = os.environ['ACCOUNT_SID']
-auth_token = os.environ['AUTH_TOKEN']
-client = Client(account_sid, auth_token)
+
 mensaje_plantilla = ''
 i = 1
 indices_acumulados = []
@@ -140,31 +136,6 @@ contenido_html = """
     </tr>
 """
 
-# Función para enviar mensaje de WhatsApp
-# region
-# def enviar_mensaje_whatsapp(destinatario, mensaje):
-#     # Split the message into chunks of 1600 characters or less
-#     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
-#     for contador, chunk in enumerate(message_chunks):                
-#         try:
-#             message = client.messages.create(
-#                                       from_='whatsapp:+14155238886',
-#                                       body = chunk,                              
-#                                       to=f'whatsapp:{destinatario}'
-#                                   )
-#             print('Mensaje enviado correctamente:', message.sid)
-#             if contador >= 1:
-#                 message = client.messages.create(
-#                                       from_='whatsapp:+14155238886',
-#                                       body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
-#                                       to=f'whatsapp:{destinatario}'
-#                                   )
-#                 print(f'Se alcanzo el l\u00EDmite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
-#                 break                
-#         except Exception as e:
-#             print(f'Ha ocurrido un error:\n', e)
-# endregion
-
 # Inicia la conexión
 try:
     # Establecer la conexión con la base de datos
@@ -210,11 +181,7 @@ try:
         
         fechaActual = datetime.now()
         
-        diferenciaPorc =  ((precioUnitPri / precioUnit * 100) - 100)*(-1)        
-        
-
-        
-        # mensaje_plantilla += f'{i}) *{int(codProveedor)} {razonSocial[:25]}* {codCompPri}{nroCompPri}/{codComp}{nroComp} * {int(diferenciaPorc)} %*\n'
+        diferenciaPorc =  ((precioUnitPri / precioUnit * 100) - 100)*(-1) 
 
         if diferenciaPorc > 50:
             contenido_html += f"""
@@ -255,23 +222,8 @@ try:
                            <td>$ {int(precioUnit)}</td>   
                            <td class="aviso-container"><span class="aviso-text"><b>↑ {int(diferenciaPorc)}%</b></td>
                          </tr>
-                     """            
-        # elif diferenciaPorc > -4 and diferenciaPorc >= diferenciaPorc * 1.15:
-        #     contenido_html += f"""
-        #                 <tr>
-        #                    <td>({int(codProveedor)}) {razonSocial}</td>
-        #                    <td>{fechaRecepcion.strftime('%d/%m/%Y')}</td>  
-        #                    <td>({codArtFormat}) - {descArticulo}</td>
-        #                    <td>{codCompPri} {int(nroCompPri)}</td>
-        #                    <td>$ {int(precioUnitPri)}</td>
-        #                    <td>{codComp} {int(nroComp)}</td>
-        #                    <td>$ {int(precioUnit)}</td>
-        #                    <td class="favor-container"><span class="favor-text"><b>↓ {int(diferenciaPorc)}%</b></td>
-        #                  </tr>
-        #              """            
+                     """        
         i += 1
-            
-    mensaje_completo = f'DIFERENCIA PRECIOS OC/FC:\n  PROVEEDOR    -    COMPROBANTES    -   DIFERENCIA   -\n{mensaje_plantilla}'
     
     contenido_html += """
       </table>
@@ -279,21 +231,10 @@ try:
     </html>
     """
     
-    len_mensaje = len(mensaje_completo)
-    
-    # try:    
-    #     # Llamar a la función para enviar el mensaje Javier Uroz
-    #     enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    # except Exception as e:
-    #     print('Error al enviar mensaje: \n',e)
-        
-    # # Prueba en cmd
-    # print(mensaje_completo)
-
 except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
-remitente = 'no-reply@imcestari.com'
+remitente = 'javieruroz@imcestari.com'
 destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
 # destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Diferencias precios OC-FC'
