@@ -114,8 +114,15 @@ try:
     # Diccionario para almacenar información de los proveedores
     proveedores = {}
 
+    comprobanteAnterior = ""
+
     # Procesar los resultados
     for resultado in resultados:
+
+        # Comprobar si hay mas de 3 errores seguidos o si existen esos codProveedor y finaliza el for      
+        codProveedor = resultado[0]
+        if codProveedor in ('006644'):
+            continue
         codProveedor = resultado[0]
         if codProveedor == '009248':
             proveedores = {
@@ -135,10 +142,18 @@ try:
 
         # Agregar información del comprobante al proveedor actual
         comprobante = {
+            'numero_comp': resultado[5],  
             'comprobante': resultado[7],
             'fecha_emision': resultado[2].strftime('%d/%m/%Y')           
         }
+        
+        # Si se repite el comprobante se omite la carga
+        if comprobante['numero_comp'] == comprobanteAnterior:
+            continue 
+
         proveedores[codProveedor]['comprobantes'].append(comprobante)
+
+        comprobanteAnterior = resultado[5]
 
     # Cerrar el cursor y la conexión
     cursor.close()
@@ -298,7 +313,7 @@ try:
             server.quit()
             print('E- mail enviado exitosamente!')
         except Exception as e:
-            print('Ha ocurrido un error:\n', e)
+            print('Ha ocurrido un error:\n{0}\nCuyo destinatario es: {1}'.format(e, destinatario))
 
 except pyodbc.Error as e:
     print('Ocurrió un error al conectar a la base de datos:', e)

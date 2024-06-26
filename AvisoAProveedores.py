@@ -332,9 +332,9 @@ try:
             server.sendmail(remitente, destinatario, mensaje.as_string())
             server.quit()
             print('E- mail enviado exitosamente!')
-            time.sleep(180)
+            time.sleep(280)
         except Exception as e:
-            print('Ha ocurrido un error:\n', e)
+            print('Ha ocurrido un error:\n{0}\nCuyo destinatario es: {1}'.format(e, destinatario))
 
 
 except pyodbc.Error as e:
