@@ -122,8 +122,7 @@ contenido_html = """
   </style>
 </head>
 <body>
-  <h2>PRECIOS EXCEDIDOS DE OC A FC</h2>
-  <button>Prueba</button>
+  <h2>PRECIOS EXCEDIDOS DE OC A FC</h2>  
   <table>
     <tr class="cabecera">
       <th class="cabecera-text">EMPRESA</th>
@@ -236,8 +235,8 @@ except pyodbc.Error as e:
     print('Ocurrio un error al conectar a la base de datos:', e)
 
 remitente = 'javieruroz@imcestari.com'
-# destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
-destinatario  = ['javieruroz@imcestari.com']
+destinatario  = ['javieruroz@imcestari.com', 'mcelli@imcestari.com']
+# destinatario  = ['javieruroz@imcestari.com']
 asunto = 'Diferencias precios OC-FC'
 msg = contenido_html
 

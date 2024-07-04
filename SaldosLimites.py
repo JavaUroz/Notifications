@@ -3,7 +3,7 @@
 import decimal
 import os
 from tokenize import Double
-from twilio.rest import Client, content
+# from twilio.rest import Client, content
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -34,7 +34,7 @@ ORDER BY pro_CodPos, TotalImpMonLoc
 # Establecer cliente con credenciales de SID y Token de Twilio 
 account_sid = os.environ['ACCOUNT_SID']
 auth_token = os.environ['AUTH_TOKEN']
-client = Client(account_sid, auth_token)
+# client = Client(account_sid, auth_token)
 
 mensaje_plantilla = ''
 i = 1
@@ -129,32 +129,32 @@ contenido_html = """
     </tr>
 """
 
-# Función para enviar mensaje de WhatsApp
-def enviar_mensaje_whatsapp(destinatario, mensaje):
-    # Split the message into chunks of 1600 characters or less
-    message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
+# # Función para enviar mensaje de WhatsApp
+# def enviar_mensaje_whatsapp(destinatario, mensaje):
+#     # Split the message into chunks of 1600 characters or less
+#     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
     
    
     
     
-    for contador, chunk in enumerate(message_chunks):                
-        try:
-            message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = chunk,                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-            print('Mensaje enviado correctamente:', message.sid)
-            if contador >= 5:
-                message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-                print(f'Se alcanzo el limite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
-                break                
-        except Exception as e:
-            print(f'Ha ocurrido un error:\n', e)
+#     for contador, chunk in enumerate(message_chunks):                
+#         try:
+#             message = client.messages.create(
+#                                       from_='whatsapp:+14155238886',
+#                                       body = chunk,                              
+#                                       to=f'whatsapp:{destinatario}'
+#                                   )
+#             print('Mensaje enviado correctamente:', message.sid)
+#             if contador >= 5:
+#                 message = client.messages.create(
+#                                       from_='whatsapp:+14155238886',
+#                                       body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
+#                                       to=f'whatsapp:{destinatario}'
+#                                   )
+#                 print(f'Se alcanzo el limite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
+#                 break                
+#         except Exception as e:
+#             print(f'Ha ocurrido un error:\n', e)
 
 # Inicia la conexión
 try:
@@ -275,14 +275,14 @@ try:
     
     len_mensaje = len(mensaje_completo)
     
-    try:        
-        # Llamar a la función para enviar el mensaje a Javier Gabarini
-        enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
+    # try:        
+    #     # Llamar a la función para enviar el mensaje a Javier Gabarini
+    #     enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
     
-        # Llamar a la función para enviar el mensaje Javier Uroz
-        enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    except Exception as e:
-        print('Error al enviar mensaje: \n',e)
+    #     # Llamar a la función para enviar el mensaje Javier Uroz
+    #     enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
+    # except Exception as e:
+    #     print('Error al enviar mensaje: \n',e)
         
     # Prueba en cmd
     print(mensaje_completo)

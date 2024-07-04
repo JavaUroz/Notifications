@@ -97,7 +97,7 @@ ORDER BY SegCabC.sccpro_RazSoc, SegCabC.scc_FEmision DESC
 with open('images/footer.jpg', 'rb') as fp:
             img = MIMEImage(fp.read())
             img.add_header('Content-ID', '<image1>')
-# Inicia la conexión
+# Inicia la conexión         
 try:
     # Establecer la conexión con la base de datos
     conexion = pyodbc.connect(connection_string)
@@ -158,7 +158,6 @@ try:
     # Cerrar el cursor y la conexión
     cursor.close()
     conexion.close()
-
     # Procesar la información de los proveedores y enviar correos
     for codProveedor, proveedor_info in proveedores.items():
         # Generar contenido HTML para el proveedor actual
@@ -317,3 +316,5 @@ try:
 
 except pyodbc.Error as e:
     print('Ocurrió un error al conectar a la base de datos:', e)
+    
+
