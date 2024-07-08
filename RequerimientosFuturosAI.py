@@ -14,29 +14,39 @@ connection_string = os.getenv('CONNECTION_STRING')
 
 # Definir la consulta SQL
 query = '''
-      SELECT [icoart_CodGen] as [Código]
-          ,[ico_Desc] as [Descripción]      
-          ,SUM([ico_CantUM1]) as [Cantidad UM1]
-          ,SUM([ico_CantUM2]) as [Cantidad UM2]
-	      ,MONTH([icocco_FEmision]) AS [Mes]
-	      ,YEAR([icocco_FEmision]) as [Año]
-      FROM [SBDACEST].[dbo].[ItemComp]
+SELECT [icoart_CodGen] as [Código]
+      ,[ico_Desc] as [Descripción]      
+      ,SUM([ico_CantUM1]) as [Cantidad UM1]
+      ,SUM([ico_CantUM2]) as [Cantidad UM2]
+	  ,MONTH([icocco_FEmision]) AS [Mes]
+	  ,YEAR([icocco_FEmision]) as [Año]
+FROM [SBDACEST].[dbo].[ItemComp] ic
+WHERE [ico_tipoIt] = 'A' 
+  AND [ico_Desc] NOT IN ('-','.','--------------------------------------------------','Fletes y acarreos','Tractor Zanello Mod. 540 C,')
+  AND [ico_Desc] NOT LIKE '%Acoplado rural tipo tolva%'
+  AND [ico_Desc] NOT LIKE '%Metal desplegado%'
+  AND [icoart_CodGen] NOT IN ('0202748','0000001')
+  --AND ic.icocco_FEmision >= DATEADD(YEAR, -5, GETDATE())  -- Filtrar últimos 5 años
 
-      WHERE ico_tipoIt = 'A' AND
-		    ico_Desc NOT IN ('-','.','--------------------------------------------------','Acoplado rural tipo tolva')
-  
-      GROUP BY  
-	       YEAR([icocco_FEmision])
-	      ,MONTH([icocco_FEmision])
-	      ,DATENAME(MONTH, [icocco_FEmision])
-	      ,[ico_tipoIt]
-	      ,[icoart_CodGen]
-          ,[ico_Desc]
-          ,[ico_TipoArt]
-      HAVING SUM([ico_CantUM1]) > 0 OR
-		     SUM([ico_CantUM2]) > 0
+  -- Subconsulta para filtrar códigos de artículo comprados en los últimos 5 años
+  AND ic.[icoart_CodGen] IN (
+      SELECT DISTINCT [icoart_CodGen]
+      FROM [SBDACEST].[dbo].[ItemComp] ic_sub
+      WHERE [ic_sub].[ico_tipoIt] = 'A' 
+        AND [ic_sub].[icocco_FEmision] >= DATEADD(YEAR, -5, GETDATE())  -- Filtrar últimos 5 años
+  )
 
-      ORDER BY Año desc, Mes desc, [icoart_CodGen]
+GROUP BY  
+       YEAR([icocco_FEmision])
+      ,MONTH([icocco_FEmision])
+      ,DATENAME(MONTH, [icocco_FEmision])
+      ,[ico_tipoIt]
+      ,[icoart_CodGen]
+      ,[ico_Desc]
+      ,[ico_TipoArt]
+HAVING SUM([ico_CantUM1]) > 0 OR
+         SUM([ico_CantUM2]) > 0
+ORDER BY Año desc, Mes desc, [icoart_CodGen]
 '''
 
 def entrenar_modelo_sklearn(datos):
