@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4d338b93-23f8-4e84-9604-fc2125ce69f6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>RequerimientosFuturosAI.py</StartupFile>
+    <StartupFile>PedidosMateriales.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -24,6 +24,7 @@
     <Compile Include="AvisoAClientes.py" />
     <Compile Include="AvisoAProveedores.py" />
     <Compile Include="AvisoPagoCtraEntrega.py" />
+    <Compile Include="PedidosMateriales.py" />
     <Compile Include="RequerimientosFuturosAI.py" />
     <Compile Include="RequerimientosMercadFuturo.py" />
     <Compile Include="RemitosPendFacturar.py" />
