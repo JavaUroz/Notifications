@@ -157,8 +157,10 @@ try:
         fechaEntrega = resultado[4]
         
         fechaActual = datetime.now()
-        diferencia =  fechaEntrega - fechaActual
-        diferenciaDias = diferencia.days
+        diferencia =   fechaActual - fechaEntrega        
+        diferenciaDias = diferencia.days 
+        if diferenciaDias > 7 and diferenciaDias < 15:
+            saludo='cac'
         tiempoLimite = 15
         contenido_html += f"""
             <tr>
@@ -166,28 +168,30 @@ try:
               <td>{tipoComprobante} {int(numeroComprobante)}</td>
               <td>{fechaEntrega.strftime('%d/%m/%Y')}</td>
         """
-        if diferenciaDias < tiempoLimite:        
-            if diferenciaDias < 0:            
-                contenido_html += f"""                                    
+        
+        if diferenciaDias > 0: 
+            contenido_html += f"""                                    
                       <td class="atrasado-container"><span class="atrasado"><b>Atrasado por {diferenciaDias} d\u00EDas</b></td>
                     </tr>
                 """
-            elif diferenciaDias > 0 and diferenciaDias <= 7:            
+        if diferenciaDias < tiempoLimite:
+            if diferenciaDias < 0 and diferenciaDias >= -7:            
                 contenido_html += f"""                  
-                      <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega en {diferenciaDias} d\u00EDas</b></span></td>
+                      <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega en {diferenciaDias*-1} d\u00EDas</b></span></td>
                     </tr>
                 """
-            elif diferenciaDias > 7 and diferenciaDias <= 15:            
+            elif diferenciaDias < -7 and diferenciaDias >= -15:            
                 contenido_html += f"""                 
-                      <td class="entrega-quincena-container"><span class="entrega-quincena"><b>Entrega en {diferenciaDias} d\u00EDas</b></span></td>
+                      <td class="entrega-quincena-container"><span class="entrega-quincena"><b>Entrega en {diferenciaDias*-1} d\u00EDas</b></span></td>
                     </tr>
                 """
-            else:
+            elif diferenciaDias == 0:
                 contenido_html += f"""                  
                       <td class="entrega-semana-container"><span class="entrega-semana"><b>Entrega para hoy</b></span></td>
                     </tr>
                 """
-            i += 1
+            else:
+                saludo = 'otro'
     
     contenido_html += """
       </table>
