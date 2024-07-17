@@ -32,10 +32,10 @@ SELECT DISTINCT
         SegCabC.sccpro_RazSoc,
         SegCabC.scc_FEmision,
         TiposDestino.spctco_Cod,
-        TiposDestino.spc_CodPvt,
+        MIN(TiposDestino.spc_CodPvt) AS spc_CodPvt,
         TiposDestino.spc_Nro,
         Proveed.pro_EMail,
-        TiposDestino.spctco_Cod + ' ' + TiposDestino.spc_Letra + ' ' + TiposDestino.spc_CodPvt + '-' + TiposDestino.spc_Nro
+        MIN(TiposDestino.spctco_Cod + ' ' + TiposDestino.spc_Letra + ' ' + TiposDestino.spc_CodPvt + '-' + TiposDestino.spc_Nro) AS Comprobante
 
 FROM ((((((((((((((SegCabC   
      INNER JOIN ParamGen ON SegCabC.sccemp_Codigo = ParamGen.pgeemp_Codigo
@@ -90,8 +90,18 @@ WHERE (sdc_TipoIt = 'A' OR sdc_TipoIt = 'C') AND
 							   '00006383','29122023','00172260','00170097','00165832',
 							   '00165834','00165838','00164795','00162525','02052024',
 							   '08042024','00085854','00010065','00001227','00001222',
-							   '00001189','00001186','00002033','00254774')
-	  
+							   '00001189','00001186','00002033','00254774','00002441',
+                               '00002407','00002202','00002075','00001761','00036487',
+                               '00002441','00002407','00002202','00002075','00001761',
+                               '00015584','00172707','00172620')
+
+GROUP BY SegCabC.sccpro_Cod, 
+        SegCabC.sccpro_RazSoc,
+        SegCabC.scc_FEmision,
+        TiposDestino.spctco_Cod,
+        TiposDestino.spc_Nro,
+        Proveed.pro_EMail        
+
 ORDER BY SegCabC.sccpro_RazSoc, SegCabC.scc_FEmision DESC
 """
 with open('images/footer.jpg', 'rb') as fp:
