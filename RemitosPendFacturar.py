@@ -69,31 +69,43 @@ FROM ((((((((((((((SegCabC
 									                Articulos.artpro_Cod = ArtProv.aprpro_Cod)) 
 
 WHERE (sdc_TipoIt = 'A' OR sdc_TipoIt = 'C') AND 
-      ((sdc_CPendFcUM1 >  0 OR  sdc_CPendFcUM2 >  0) OR  
-      (tco_TipoFijo='RD' AND scc_GenPendFc=1 And scc_GenPendRt=0 And (sdc_CPendFcUM1 <>  0 OR  sdc_CPendFcUM2 <>  0))) AND
-      (sdc_ActStock <> '5') AND Not 
-      (scc_OrigenComp = 'P' And TiposDestino.spctco_TipoFijo = 'OC' And TiposDestino.spc_EstadoAutoriz Is Null) AND 
-      (scc_CumpXPgm = 0) AND (scc_Estado <> 'X') AND 
-      (TiposDestino.spc_Orig <> 'R' AND TiposDestino.spc_Orig <> 'C') AND 	  
-      TiposDestino.spctco_Cod in ('RT', 'FC') AND (TiposDestino.spc_EstadoAutoriz != 'R' OR TiposDestino.spc_EstadoAutoriz IS NULL) AND
-      TipComp.tco_Circuito = 'C' AND NOT
-      TiposOrigen.spctco_Cod LIKE 'OCR' AND
-      SegCabC.scc_FEmision >= DATEADD(YEAR, -1, GETDATE()) AND NOT
-      SegCabC.sccpro_Cod IN (010406) AND NOT
-      TiposDestino.spc_Nro IN ('00095975','00003493','00172178','00171574','00010365',
-							   '00152502','00014727','00014679','00013555','00012181',
-							   '00015909','00559307','00063537','00002590','00002470',
-							   '00002642','00000333','04122023','00000300','00000256',
-							   '00014180','00004713','00291606','00056841','00065391',
-							   '00061422','00060907','00060741','00000278','00000276',
-							   '00000200','00084589','00000303','00009294','00009265',
-							   '00006383','29122023','00172260','00170097','00165832',
-							   '00165834','00165838','00164795','00162525','02052024',
-							   '08042024','00085854','00010065','00001227','00001222',
-							   '00001189','00001186','00002033','00254774','00002441',
-                               '00002407','00002202','00002075','00001761','00036487',
-                               '00002441','00002407','00002202','00002075','00001761',
-                               '00015584','00172707','00172620')
+	  ((sdc_CPendFcUM1 >  0 OR  sdc_CPendFcUM2 >  0) OR  
+	  (tco_TipoFijo='RD' AND scc_GenPendFc=1 And scc_GenPendRt=0 And (sdc_CPendFcUM1 <>  0 OR  sdc_CPendFcUM2 <>  0))) AND
+	  (sdc_ActStock <> '5') AND Not 
+	  (scc_OrigenComp = 'P' And TiposDestino.spctco_TipoFijo = 'OC' And TiposDestino.spc_EstadoAutoriz Is Null) AND 
+	  (scc_CumpXPgm = 0) AND (scc_Estado <> 'X') AND 
+	  (TiposDestino.spc_Orig <> 'R' AND TiposDestino.spc_Orig <> 'C') AND 	  
+	  TiposDestino.spctco_Cod in ('RT', 'FC') AND (TiposDestino.spc_EstadoAutoriz != 'R' OR TiposDestino.spc_EstadoAutoriz IS NULL) AND
+	  TipComp.tco_Circuito = 'C' AND NOT
+	  TiposOrigen.spctco_Cod LIKE 'OCR' AND
+	  SegCabC.scc_FEmision >= DATEADD(YEAR, -1, GETDATE()) AND NOT
+	  SegCabC.sccpro_Cod IN ('006644') AND NOT
+	  (TiposDestino.spc_Nro IN ('00095975','28062024','00015584','00036487','00172178','00171574','00010365','00152502','00014727','00014679',
+							   '00013555','00012181','00015909','00559307','00063537','04122023','00254774','00014180','00291606','00056841',
+							   '00065391','00061422','00060907','00060741','00085854','00010065','00084589','29122023','00172260','00170097',
+							   '00165832','00165834','00165838','00164795','00162525','02052024','08042024') 
+									OR (TiposDestino.spc_Nro IN ('00000300','00000333')
+										AND SegCabC.sccpro_Cod = '010112')
+									OR (TiposDestino.spc_Nro IN ('00000200','00000278','00000276')
+										AND SegCabC.sccpro_Cod = '010014')
+									OR (TiposDestino.spc_Nro IN ('00000303')
+										AND SegCabC.sccpro_Cod = '008192')
+									OR (TiposDestino.spc_Nro IN ('00001234')
+										AND SegCabC.sccpro_Cod = '009922')
+									OR (TiposDestino.spc_Nro IN ('00009265','00009294','00009689','00009650')
+										AND SegCabC.sccpro_Cod = '008192')
+									OR (TiposDestino.spc_Nro IN ('00002075','00002202','00002407','00002441','00001761')
+										AND SegCabC.sccpro_Cod = '008790')
+									OR (TiposDestino.spc_Nro IN ( '00002590')
+										AND SegCabC.sccpro_Cod = '008841')
+									OR (TiposDestino.spc_Nro IN ( '00004713')
+										AND SegCabC.sccpro_Cod = '009221')
+									OR (TiposDestino.spc_Nro IN ( '00002033')
+										AND SegCabC.sccpro_Cod = '008781')
+									OR (TiposDestino.spc_Nro IN ( '00006383')
+										AND SegCabC.sccpro_Cod = '009486')
+									OR (TiposDestino.spc_Nro IN ('00001189','00001186','00001222','00001227')
+										AND SegCabC.sccpro_Cod = '008718'))
 
 GROUP BY SegCabC.sccpro_Cod, 
         SegCabC.sccpro_RazSoc,
@@ -128,20 +140,8 @@ try:
 
     # Procesar los resultados
     for resultado in resultados:
-
-        # Comprobar si hay mas de 3 errores seguidos o si existen esos codProveedor y finaliza el for      
         codProveedor = resultado[0]
-        if codProveedor in ('006644'):
-            continue
-        codProveedor = resultado[0]
-        if codProveedor == '009248':
-            proveedores = {
-            '009248': {
-            'razon_social': 'EVER WEAR S.A.',
-            'email': ['atencionalcliente@everwear.com.ar','facturacion@everwear.com.ar'],
-            'comprobantes': []
-        },
-    }
+         
         # Si el proveedor no está en el diccionario, crear una nueva entrada
         if codProveedor not in proveedores:
             proveedores[codProveedor] = {
@@ -149,6 +149,10 @@ try:
                 'email': obtenerMailsValidos(resultado[6]),
                 'comprobantes': []
             }
+            
+        # Comprobar si casos particulares        
+        if codProveedor in ('006644'):
+            continue              
 
         # Agregar información del comprobante al proveedor actual
         comprobante = {
@@ -160,6 +164,9 @@ try:
         # Si se repite el comprobante se omite la carga
         if comprobante['numero_comp'] == comprobanteAnterior:
             continue 
+
+        if codProveedor == '009248':
+            proveedores[codProveedor]['email'] = ['atencionalcliente@everwear.com.ar','facturacion@everwear.com.ar']          
 
         proveedores[codProveedor]['comprobantes'].append(comprobante)
 
