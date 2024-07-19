@@ -129,7 +129,7 @@ try:
             'unidad_medida2': resultado[11],
             'cantidad_um2': resultado[12]
         }
-        if comprobante['nro_comprobante'] in ('00000152','00025522','00025543','00025635'):
+        if comprobante['nro_comprobante'] in ('00000152','00025522','00025543','00025635','00025284'):
             continue
         proveedores[codProveedor]['comprobantes'].append(comprobante)
 
