@@ -116,7 +116,7 @@ GROUP BY SegCabC.sccpro_Cod,
 
 ORDER BY SegCabC.sccpro_RazSoc, SegCabC.scc_FEmision DESC
 """
-with open('images/footer.jpg', 'rb') as fp:
+with open(r'C:\Users\javie\source\Notifications\images\footer.jpg', 'rb') as fp:
             img = MIMEImage(fp.read())
             img.add_header('Content-ID', '<image1>')
 # Inicia la conexión         

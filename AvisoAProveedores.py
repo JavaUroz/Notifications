@@ -141,7 +141,7 @@ try:
     for codProveedor, proveedor_info in proveedores.items():
         # Generar contenido HTML para el proveedor actual
         # Cargar la imagen desde el archivo
-        with open('images/footer.jpg', 'rb') as fp:
+        with open(r'C:\Users\javie\source\Notifications\images\footer.jpg', 'rb') as fp:
             img = MIMEImage(fp.read())
             img.add_header('Content-ID', '<image1>')
         contenido_html = """

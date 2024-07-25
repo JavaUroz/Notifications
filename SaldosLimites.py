@@ -182,7 +182,7 @@ def process_results(results):
 def send_email(contenido_html, mensaje_completo):
     try:
         # Cargar la imagen del pie de página
-        with open('images/footer.jpg', 'rb') as fp:
+        with open(r'C:\Users\javie\source\Notifications\images\footer.jpg', 'rb') as fp:
             img = MIMEImage(fp.read())
             img.add_header('Content-ID', '<image1>')
 
