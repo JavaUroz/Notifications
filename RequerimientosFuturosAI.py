@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 import pyodbc
 import pandas as pd
 import os

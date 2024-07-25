@@ -1,29 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import decimal
 import os
-from tokenize import Double
-# from twilio.rest import Client, content
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-import dotenv
+from dotenv import load_dotenv
+import traceback
 
-# Cargar librería para .env
-dotenv.load_dotenv()
+# Cargar variables de entorno
+load_dotenv()
 
-# Cargar la imagen desde el archivo
-with open('images/footer.jpg', 'rb') as fp:
-    img = MIMEImage(fp.read())
-    img.add_header('Content-ID', '<image1>')
+# Constantes
+CONNECTION_STRING = os.environ['CONNECTION_STRING']
+EMAIL_USERNAME = os.environ['USUARIO']
+EMAIL_PASSWORD = os.environ['PASSWORD']
+SMTP_SERVER = 'px000056.ferozo.com'
+SMTP_PORT = 465
+SENDER_EMAIL = 'javieruroz@imcestari.com'
+RECIPIENTS = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
 
-# Establecer el connection string
-connection_string = os.environ['CONNECTION_STRING']
-
-# Establecer la consulta SQL
-sql_query = """
+# Consulta SQL
+SQL_QUERY = """
 SELECT ccopro_CUIT, ccopro_RazSoc, pro_CodPos, pro_Loc, SUM(cco_ImpMonLoc) AS TotalImpMonLoc
 FROM dbo.QRY_COMPRASPAGOS
 WHERE DescTipCond != 'CONTADO'
@@ -31,227 +30,132 @@ GROUP BY ccopro_CUIT, ccopro_RazSoc, pro_CodPos, pro_Loc
 ORDER BY pro_CodPos, TotalImpMonLoc
 """
 
-# Establecer cliente con credenciales de SID y Token de Twilio 
-account_sid = os.environ['ACCOUNT_SID']
-auth_token = os.environ['AUTH_TOKEN']
-# client = Client(account_sid, auth_token)
+class SaldoDeudor:
+    def __init__(self, cuit, razon_social, codigo_postal, localidad, saldo):
+        self.cuit = cuit
+        self.razon_social = razon_social
+        # self.codigo_postal = codigo_postal
+        # self.localidad = localidad
+        self.codigo_postal = codigo_postal if codigo_postal is not None else ''
+        self.localidad = localidad if localidad is not None else ''
+        self.saldo = saldo
 
-mensaje_plantilla = ''
-i = 1
-indices_acumulados = []
+    def cuit_formateado(self):
+        return f"{self.cuit[:2]}-{self.cuit[2:10]}-{self.cuit[10:]}"
 
-contenido_html = """
-<html>
-<head>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
-  <style>                
-    table {
-      font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
-      border-collapse: collapse;
-      width: 100%;
-    }
-    h1, h2, h3 {
-      color: #333333
-    }
-    th, td {
-      border: 1px solid #E5E7E9;
-      padding: 8px;
-      text-align: left;
-    }
-    .cabecera {
-      background-color: #FF0000;      
-    }
-    .titulo-aviso-container {
-      background-color: #FFFFFF;                
-    }
-    .titulo-aviso-text {
-      color: #333333;
-      font-family: 'Myriad Pro', 'Roboto', sans-serif;
-      font-weight: 600;
-      padding-bottom: 2px;
-    }
-    .cabecera-text {
-      color: #FFFFFF;
-      font-family: 'Myriad Pro', 'Roboto', sans-serif;
-      font-weight: 400;
-    }
-    .excedido-container {
-       background-color: #CC0000;
-    }
-    .excedido-text {
-       color: #FFFFFF;
-       font-weight: 600;
-    }
-    .advertencia-container {
-       background-color: #F2DF07;
-    }
-    .saludo-text {
-      color: #000000;
-      font-family: 'Myriad Pro', 'Roboto', sans-serif;
-      font-weight: 400;
-    }
-    .footer-container {
-       padding-top: 20px;
-    }   
-    .footer-text-semibold {
-        color: #000000;
-        font-family: 'Myriad Pro', 'Roboto', sans-serif;
-        font-weight: 600; /* Semibold */
-        font-size: 20px;
-    }
-    .footer-text-condensed {
-        color: #333333;
-        font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
-        font-weight: 400; /* Regular Condensed */
-    }
-    .footer-text-condensed-italic {
-        color: #336699;
-        font-family: 'Myriad Pro Condensed', 'Roboto', sans-serif;
-        font-weight: 400; /* Regular Condensed */
-        font-size: 11px;
-        font-style: italic;
-    }
-    .saldo-text{
-      color: #CC0000;
-      font-style:italic;
-    }
-  </style>
-</head>
-<body>
-  <div class="titulo-aviso-container">
-      <h2 class="titulo-aviso-text">Saldos deudores</h2>
-  </div>  
-  <table>
-    <tr class="cabecera">
-      <th class="cabecera-text">EMPRESA</th>
-      <th class="cabecera-text">CUIT</th>
-      <th class="cabecera-text">SALDO</th>
-    </tr>
-"""
+    def localidad_formateada(self):
+        return self.localidad.upper() if self.localidad else 'None'
 
-# # Función para enviar mensaje de WhatsApp
-# def enviar_mensaje_whatsapp(destinatario, mensaje):
-#     # Split the message into chunks of 1600 characters or less
-#     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
-    
-   
-    
-    
-#     for contador, chunk in enumerate(message_chunks):                
-#         try:
-#             message = client.messages.create(
-#                                       from_='whatsapp:+14155238886',
-#                                       body = chunk,                              
-#                                       to=f'whatsapp:{destinatario}'
-#                                   )
-#             print('Mensaje enviado correctamente:', message.sid)
-#             if contador >= 5:
-#                 message = client.messages.create(
-#                                       from_='whatsapp:+14155238886',
-#                                       body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
-#                                       to=f'whatsapp:{destinatario}'
-#                                   )
-#                 print(f'Se alcanzo el limite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
-#                 break                
-#         except Exception as e:
-#             print(f'Ha ocurrido un error:\n', e)
+    def limite(self):
+        if 'banco' in self.razon_social.lower():
+            return -100000000
+        elif ('2720' in self.codigo_postal.lower() or
+              ('30707733264' in self.cuit.lower())) and not any(excl in self.cuit.lower() for excl in
+              ('20221493185', '30506730038', '30717013162', '20132864935', '30707067434')) and \
+              self.razon_social not in ('GAS PIC S.A.', 'pardo'):
+            return -5000
+        elif 'graneros' in self.razon_social.lower():
+            return -150000
+        elif ('transporte' in self.razon_social.lower() and self.cuit not in ('30710824106', '30516892788')) or \
+             'damario' in self.razon_social.lower() or \
+             'comision' in self.razon_social.lower() or \
+             'bayl' in self.razon_social.lower() or \
+             any(excl in self.cuit.lower() for excl in ('30714693243', '30515999686', '20319059394',
+                                                       '30707735577', '20046963335', '20303127411',
+                                                       '20362238650', '20103107572', 'bossolani')) or \
+             ('cargo' in self.razon_social.lower() and self.cuit not in ('30710188501', '20221493185')):
+            return -10000
+        elif 'rosatto' in self.razon_social.lower() or 'cr comisiones' in self.razon_social.lower():
+            return -300000
+        elif 'gas pic s.a. (combustibles)' in self.razon_social.lower():
+            return -1000000
+        elif '30711186154' in self.cuit:  # Solser
+            return -500000
+        elif '33583193109' in self.cuit:  # Plegamex
+            return -50000
+        elif '23067223284' in self.cuit:  # Oxitécnica
+            return -150000
+        elif 'gas pic s.a. (lubricantes)' in self.razon_social.lower():
+            return -100000
+        return -60000000
 
-# Inicia la conexión
-try:
-    # Establecer la conexión con la base de datos
-    conexion = pyodbc.connect(connection_string)
+    def supera_limite(self):
+        return self.saldo < self.limite()
 
-    # Crear un cursor para ejecutar la consulta SQL
-    cursor = conexion.cursor()
+def connect_to_db():
+    try:
+        return pyodbc.connect(CONNECTION_STRING)
+    except pyodbc.Error as e:
+        print(f'Error al conectar a la base de datos: {e}')
+        raise
 
-    # Ejecutar la consulta SQL
-    cursor.execute(sql_query)
+def fetch_data(cursor):
+    cursor.execute(SQL_QUERY)
+    return cursor.fetchall()
 
-    # Obtener los resultados
-    resultados = cursor.fetchall()
+def process_results(results):
+    saldo_deudores = [SaldoDeudor(*resultado) for resultado in results]
+    saldo_deudores.sort(key=lambda x: x.saldo, reverse=True)
 
-    # Procesar los resultados
-    for resultado in resultados:        
-        cuit = resultado[0]
-        cuit_formateado = cuit[:2] + "-" + cuit[2:10] + "-" + cuit[10:]
-        razon_social = resultado[1]
-        codigo_postal = resultado[2]
-        if codigo_postal == None:
-            codigo_postal = 'None'
-        localidad = resultado[3]
-        if localidad == None:
-            localidad = 'None'
-        localidad_formateado = localidad.upper()
-        saldo = resultado[4]        
-        limite = -60000000
-        diferencia = saldo - limite
-        
-        if 'banco' in razon_social.lower():
-            limite = -100000000
-        elif '2720' in codigo_postal.lower() and not \
-            ('20221493185' in cuit.lower()) and not \
-            ('30506730038' in cuit.lower()) and not \
-            ('30717013162' in cuit.lower()) and not \
-            ('20132864935' in cuit.lower()) and not \
-            ('30707067434' in cuit.lower()) and not \
-            (razon_social == 'GAS PIC S.A.') and not \
-            ('pardo' in razon_social.lower()):
-            limite = -5000;
-        elif 'graneros' in razon_social.lower():
-            limite = -150000
-        elif (('transporte' in razon_social.lower()) and (cuit != '30710824106') and (cuit != '30516892788')) or \
-            ('damario' in razon_social.lower()) or \
-            ('comision' in razon_social.lower()) or \
-            ('bayl' in razon_social.lower()) or \
-            ('30714693243' in cuit.lower()) or \
-            ('30515999686' in cuit.lower()) or \
-            ('20319059394' in cuit.lower()) or \
-            ('30707735577' in cuit.lower()) or \
-            ('20046963335' in cuit.lower()) or \
-            ('20303127411' in cuit.lower()) or \
-            ('20362238650' in cuit.lower()) or \
-            ('20103107572' in cuit.lower()) or \
-            ('bossolani' in razon_social.lower()) or \
-            (('cargo' in razon_social.lower()) and (cuit != '30710188501') and (cuit != '20221493185')): # Transportes exceptuando Transporte Patron y Transporte Italia
-            limite = -10000
-        elif ('rosatto' in razon_social.lower()) or ('cr comisiones' in razon_social.lower()):
-            limite = -300000
-        elif 'gas pic s.a. (combustibles)' in razon_social.lower():
-            limite = -1000000
-        elif '30711186154' in cuit: # Solser
-            limite = -500000
-        elif '33583193109' in cuit: # Plegamex
-            limite = -50000
-        elif '23067223284' in cuit: # Oxitécnica
-            limite = -150000
-        elif 'gas pic s.a. (lubricantes)' in razon_social.lower():
-            limite = -100000        
-    
-        # Comprueba si el saldo supera el límite de la cuenta y ejecura la función verificar_saldos_y_enviar_notificaciones
-        if saldo < limite:
-            if '2720' in codigo_postal.lower():
+    mensaje_plantilla = ''
+    contenido_html = """
+    <html>
+    <head>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
+      <style>
+        table { font-family: 'Roboto', sans-serif; border-collapse: collapse; width: 100%; }
+        h1, h2, h3 { color: #333333 }
+        th, td { border: 1px solid #E5E7E9; padding: 8px; text-align: left; }
+        .cabecera { background-color: #FF0000; }
+        .titulo-aviso-container { background-color: #FFFFFF; }
+        .titulo-aviso-text { color: #333333; font-weight: 600; padding-bottom: 2px; }
+        .cabecera-text { color: #FFFFFF; font-weight: 400; }
+        .excedido-container { background-color: #CC0000; }
+        .excedido-text { color: #FFFFFF; font-weight: 600; }
+        .advertencia-container { background-color: #F2DF07; }
+        .saludo-text { color: #000000; font-weight: 400; }
+        .footer-container { padding-top: 20px; }
+        .footer-text-semibold { color: #000000; font-weight: 600; font-size: 20px; }
+        .footer-text-condensed { color: #333333; font-weight: 400; }
+        .footer-text-condensed-italic { color: #336699; font-weight: 400; font-size: 11px; font-style: italic; }
+        .saldo-text { color: #CC0000; font-style: italic; }
+      </style>
+    </head>
+    <body>
+      <div class="titulo-aviso-container">
+          <h2 class="titulo-aviso-text">Saldos deudores</h2>
+      </div>
+      <table>
+        <tr class="cabecera">
+          <th class="cabecera-text">EMPRESA</th>
+          <th class="cabecera-text">CUIT</th>
+          <th class="cabecera-text">SALDO</th>
+        </tr>
+    """
+
+    for i, saldo_deudor in enumerate(saldo_deudores, start=1):
+        if saldo_deudor.supera_limite():
+            if '2720' in saldo_deudor.codigo_postal.lower():
                 contenido_html += f"""
                     <tr>
-                      <td><b>({localidad_formateado})</b> {razon_social}</td>
-                      <td>{cuit_formateado}</td>
-                      <td><b><span class="saldo-text">$  {round(saldo, 2)}</span></td>
+                      <td><b>({saldo_deudor.localidad_formateada()})</b> {saldo_deudor.razon_social}</td>
+                      <td>{saldo_deudor.cuit_formateado()}</td>
+                      <td><b><span class="saldo-text">$ {round(saldo_deudor.saldo, 2)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *({localidad_formateado})* {razon_social} - {cuit_formateado} - *$ {round(saldo, 2)}*\n'
-            # Mensaje de la plantilla
+                mensaje_plantilla += f'{i}) *({saldo_deudor.localidad_formateada()})* {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {round(saldo_deudor.saldo, 2)}*\n'
             else:
                 contenido_html += f"""
                     <tr>
-                      <td>{razon_social}</td>
-                      <td>{cuit_formateado}</td>
-                      <td><b><span class="saldo-text">$  {round(saldo, 2)}</span></td>
+                      <td>{saldo_deudor.razon_social}</td>
+                      <td>{saldo_deudor.cuit_formateado()}</td>
+                      <td><b><span class="saldo-text">$ {round(saldo_deudor.saldo, 2)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) {razon_social} - {cuit_formateado} - *$ {round(saldo, 2)}*\n'
-            i += 1
-            
+                mensaje_plantilla += f'{i}) {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {round(saldo_deudor.saldo, 2)}*\n'
+
     mensaje_completo = f'ATENCION PAGOS EXCEDIDOS: \n   -    RAZON SOCIAL    -   CUIT   -   SALDO   -\n{mensaje_plantilla}'
-    
+
     contenido_html += """
       </table>
       </br>
@@ -272,54 +176,63 @@ try:
     </body>
     </html>
     """
-    
-    len_mensaje = len(mensaje_completo)
-    
-    # try:        
-    #     # Llamar a la función para enviar el mensaje a Javier Gabarini
-    #     enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
-    
-    #     # Llamar a la función para enviar el mensaje Javier Uroz
-    #     enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    # except Exception as e:
-    #     print('Error al enviar mensaje: \n',e)
-        
-    # Prueba en cmd
-    print(mensaje_completo)
 
-except pyodbc.Error as e:
-    print('Ocurrio un error al conectar a la base de datos:', e)
+    return contenido_html, mensaje_completo
 
-remitente = 'javieruroz@imcestari.com'
-destinatario  = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
-# destinatario  = ['javieruroz@imcestari.com']
-asunto = 'Pagos excedidos'
-msg = contenido_html
+def send_email(contenido_html, mensaje_completo):
+    try:
+        # Cargar la imagen del pie de página
+        with open('images/footer.jpg', 'rb') as fp:
+            img = MIMEImage(fp.read())
+            img.add_header('Content-ID', '<image1>')
 
-mensaje = MIMEMultipart()
+        # Configurar el mensaje
+        mensaje = MIMEMultipart()
+        mensaje['From'] = SENDER_EMAIL
+        mensaje['To'] = ", ".join(RECIPIENTS)
+        mensaje['Subject'] = 'Pagos excedidos'
+        mensaje.attach(img)
+        mensaje.attach(MIMEText(contenido_html, 'html'))
 
-mensaje['From'] = remitente
-mensaje['To'] = ", ".join(destinatario)
-mensaje['Subject'] = asunto
-mensaje.attach(img)
-mensaje.attach(MIMEText(contenido_html, 'html'))
+        # Enviar el correo
+        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+            server.sendmail(SENDER_EMAIL, RECIPIENTS, mensaje.as_string())
 
-# Datos
-username = os.environ['USERNAME']
-password = os.environ['PASSWORD']
+        print('E-mail enviado exitosamente!')
+    except Exception as e:
+        print(f'Error al enviar el correo electronico: {e}')
 
-# Enviando el correo
-server = smtplib.SMTP_SSL('px000056.ferozo.com:465')
-# server.starttls()
-username=remitente
-server.login(username,password)
-try:
-    server.sendmail(remitente, destinatario, mensaje.as_string())
-    server.quit()
-    print('E- mail enviado exitosamente!')
-except Exception as e:
-    print('Ha ocurrido un error:\n', e)
+def main():
+    try:
+        # Establecer conexión con la base de datos
+        conexion = connect_to_db()
+        cursor = conexion.cursor()
 
-# Cerrar el cursor y la conexión
-cursor.close()
-conexion.close()
+        # Obtener datos de la base de datos
+        resultados = fetch_data(cursor)
+
+        # Procesar los resultados y construir el contenido
+        contenido_html, mensaje_completo = process_results(resultados)
+
+        # Enviar el correo electrónico
+        send_email(contenido_html, mensaje_completo)
+
+    except Exception as e:
+        # Capturar y mostrar información detallada del error
+        print(f'Error en la ejecución principal: {e}')
+        print('Detalles del error:')
+        print(traceback.format_exc())
+    finally:
+        # Cerrar el cursor y la conexión
+        try:
+            cursor.close()
+            conexion.close()
+        except Exception as close_error:
+            print(f'Error al cerrar la conexión o el cursor: {close_error}')
+            print('Detalles del error de cierre:')
+            print(traceback.format_exc())
+
+# Ejecutar la función principal
+if __name__ == "__main__":
+    main()
