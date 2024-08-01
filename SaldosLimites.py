@@ -19,19 +19,33 @@ EMAIL_PASSWORD = os.environ['PASSWORD']
 SMTP_SERVER = 'px000056.ferozo.com'
 SMTP_PORT = 465
 SENDER_EMAIL = 'javieruroz@imcestari.com'
-RECIPIENTS = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+# RECIPIENTS = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+RECIPIENTS = ['javieruroz@imcestari.com']
 
 # Consulta SQL
 SQL_QUERY = """
-SELECT ccopro_CUIT, ccopro_RazSoc, pro_CodPos, pro_Loc, SUM(cco_ImpMonLoc) AS TotalImpMonLoc
+SELECT  CCOPRO_CODIN,
+		CCOPRO_CUIT, 
+		MIN(CCOPRO_RAZSOC) AS CCOPRO_RAZSOC, 
+		MIN(PRO_CODPOS) AS PRO_CODPOS, 
+		MIN(PRO_LOC) AS PRO_LOC, 
+		ABS(ROUND(SUM(ROUND(CCO_IMPMONLOC, 2)),0)) AS SALDO
+
 FROM dbo.QRY_COMPRASPAGOS
-WHERE DescTipCond != 'CONTADO'
-GROUP BY ccopro_CUIT, ccopro_RazSoc, pro_CodPos, pro_Loc
-ORDER BY pro_CodPos, TotalImpMonLoc
+
+WHERE CCO_MARCACDOCTACTEBCOTARJ = 2
+
+GROUP BY CCOPRO_CODIN,
+		 CCOPRO_CUIT
+
+HAVING SUM(ROUND(cco_ImpMonLoc, 2)) < -1000
+
+ORDER BY SALDO DESC
 """
 
 class SaldoDeudor:
-    def __init__(self, cuit, razon_social, codigo_postal, localidad, saldo):
+    def __init__(self, cod_prov,cuit, razon_social, codigo_postal, localidad, saldo):
+        self.cod_prov = cod_prov
         self.cuit = cuit
         self.razon_social = razon_social
         # self.codigo_postal = codigo_postal
@@ -48,14 +62,14 @@ class SaldoDeudor:
 
     def limite(self):
         if 'banco' in self.razon_social.lower():
-            return -100000000
+            return 100000000
         elif ('2720' in self.codigo_postal.lower() or
               ('30707733264' in self.cuit.lower())) and not any(excl in self.cuit.lower() for excl in
               ('20221493185', '30506730038', '30717013162', '20132864935', '30707067434')) and \
               self.razon_social not in ('GAS PIC S.A.', 'pardo'):
-            return -5000
+            return 5000
         elif 'graneros' in self.razon_social.lower():
-            return -150000
+            return 150000
         elif ('transporte' in self.razon_social.lower() and self.cuit not in ('30710824106', '30516892788')) or \
              'damario' in self.razon_social.lower() or \
              'comision' in self.razon_social.lower() or \
@@ -64,23 +78,23 @@ class SaldoDeudor:
                                                        '30707735577', '20046963335', '20303127411',
                                                        '20362238650', '20103107572', 'bossolani')) or \
              ('cargo' in self.razon_social.lower() and self.cuit not in ('30710188501', '20221493185')):
-            return -10000
+            return 10000
         elif 'rosatto' in self.razon_social.lower() or 'cr comisiones' in self.razon_social.lower():
-            return -300000
+            return 300000
         elif 'gas pic s.a. (combustibles)' in self.razon_social.lower():
-            return -1000000
+            return 1000000
         elif '30711186154' in self.cuit:  # Solser
-            return -500000
+            return 500000
         elif '33583193109' in self.cuit:  # Plegamex
-            return -50000
+            return 50000
         elif '23067223284' in self.cuit:  # Oxitécnica
-            return -150000
+            return 150000
         elif 'gas pic s.a. (lubricantes)' in self.razon_social.lower():
-            return -100000
-        return -60000000
+            return 100000
+        return 60000000
 
     def supera_limite(self):
-        return self.saldo < self.limite()
+        return self.saldo > self.limite()
 
 def connect_to_db():
     try:
@@ -138,21 +152,21 @@ def process_results(results):
             if '2720' in saldo_deudor.codigo_postal.lower():
                 contenido_html += f"""
                     <tr>
-                      <td><b>({saldo_deudor.localidad_formateada()})</b> {saldo_deudor.razon_social}</td>
+                      <td><b>({saldo_deudor.localidad_formateada()})</b> {saldo_deudor.razon_social} ({int(saldo_deudor.cod_prov)})</td>
                       <td>{saldo_deudor.cuit_formateado()}</td>
-                      <td><b><span class="saldo-text">$ {round(saldo_deudor.saldo, 2)}</span></td>
+                      <td><b><span class="saldo-text">$ {int(saldo_deudor.saldo)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *({saldo_deudor.localidad_formateada()})* {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {round(saldo_deudor.saldo, 2)}*\n'
+                mensaje_plantilla += f'{i}) *({saldo_deudor.localidad_formateada()})* {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {int(saldo_deudor.saldo)}*\n'
             else:
                 contenido_html += f"""
                     <tr>
-                      <td>{saldo_deudor.razon_social}</td>
+                      <td>{saldo_deudor.razon_social} ({int(saldo_deudor.cod_prov)})</td>
                       <td>{saldo_deudor.cuit_formateado()}</td>
-                      <td><b><span class="saldo-text">$ {round(saldo_deudor.saldo, 2)}</span></td>
+                      <td><b><span class="saldo-text">$ {int(saldo_deudor.saldo)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {round(saldo_deudor.saldo, 2)}*\n'
+                mensaje_plantilla += f'{i}) {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {int(saldo_deudor.saldo)}*\n'
 
     mensaje_completo = f'ATENCION PAGOS EXCEDIDOS: \n   -    RAZON SOCIAL    -   CUIT   -   SALDO   -\n{mensaje_plantilla}'
 
