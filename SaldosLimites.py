@@ -19,13 +19,12 @@ EMAIL_PASSWORD = os.environ['PASSWORD']
 SMTP_SERVER = 'px000056.ferozo.com'
 SMTP_PORT = 465
 SENDER_EMAIL = 'javieruroz@imcestari.com'
-# RECIPIENTS = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
-RECIPIENTS = ['javieruroz@imcestari.com']
+RECIPIENTS = ['javieruroz@imcestari.com', 'jgabarini@imcestari.com']
+# RECIPIENTS = ['javieruroz@imcestari.com']
 
 # Consulta SQL
 SQL_QUERY = """
-SELECT  CCOPRO_CODIN,
-		CCOPRO_CUIT, 
+SELECT  CCOPRO_CODIN,		 
 		MIN(CCOPRO_RAZSOC) AS CCOPRO_RAZSOC, 
 		MIN(PRO_CODPOS) AS PRO_CODPOS, 
 		MIN(PRO_LOC) AS PRO_LOC, 
@@ -35,8 +34,7 @@ FROM dbo.QRY_COMPRASPAGOS
 
 WHERE CCO_MARCACDOCTACTEBCOTARJ = 2
 
-GROUP BY CCOPRO_CODIN,
-		 CCOPRO_CUIT
+GROUP BY CCOPRO_CODIN
 
 HAVING SUM(ROUND(cco_ImpMonLoc, 2)) < -1000
 
@@ -44,18 +42,14 @@ ORDER BY SALDO DESC
 """
 
 class SaldoDeudor:
-    def __init__(self, cod_prov,cuit, razon_social, codigo_postal, localidad, saldo):
+    def __init__(self, cod_prov, razon_social, codigo_postal, localidad, saldo):
         self.cod_prov = cod_prov
-        self.cuit = cuit
         self.razon_social = razon_social
         # self.codigo_postal = codigo_postal
         # self.localidad = localidad
         self.codigo_postal = codigo_postal if codigo_postal is not None else ''
         self.localidad = localidad if localidad is not None else ''
         self.saldo = saldo
-
-    def cuit_formateado(self):
-        return f"{self.cuit[:2]}-{self.cuit[2:10]}-{self.cuit[10:]}"
 
     def localidad_formateada(self):
         return self.localidad.upper() if self.localidad else 'None'
@@ -64,30 +58,28 @@ class SaldoDeudor:
         if 'banco' in self.razon_social.lower():
             return 100000000
         elif ('2720' in self.codigo_postal.lower() or
-              ('30707733264' in self.cuit.lower())) and not any(excl in self.cuit.lower() for excl in
-              ('20221493185', '30506730038', '30717013162', '20132864935', '30707067434')) and \
+              ('008228' in self.cod_prov)) and not any(excl in self.cod_prov for excl in
+              ('009055', '010088', '010214', '009144', '009496')) and \
               self.razon_social not in ('GAS PIC S.A.', 'pardo'):
             return 5000
         elif 'graneros' in self.razon_social.lower():
             return 150000
-        elif ('transporte' in self.razon_social.lower() and self.cuit not in ('30710824106', '30516892788')) or \
+        elif ('transporte' in self.razon_social.lower() and self.cod_prov not in ('008664', '010480')) or \
              'damario' in self.razon_social.lower() or \
              'comision' in self.razon_social.lower() or \
              'bayl' in self.razon_social.lower() or \
-             any(excl in self.cuit.lower() for excl in ('30714693243', '30515999686', '20319059394',
-                                                       '30707735577', '20046963335', '20303127411',
-                                                       '20362238650', '20103107572', 'bossolani')) or \
-             ('cargo' in self.razon_social.lower() and self.cuit not in ('30710188501', '20221493185')):
+             any(excl in self.cod_prov for excl in ('008898', '005144', '009457', '007297', '005183', '010316', '010303', '006612')) or \
+             ('cargo' in self.razon_social.lower() and self.cod_prov not in ('008177', '009055')):
             return 10000
         elif 'rosatto' in self.razon_social.lower() or 'cr comisiones' in self.razon_social.lower():
             return 300000
         elif 'gas pic s.a. (combustibles)' in self.razon_social.lower():
             return 1000000
-        elif '30711186154' in self.cuit:  # Solser
+        elif '008248' in self.cod_prov:  # Solser
             return 500000
-        elif '33583193109' in self.cuit:  # Plegamex
+        elif '005349' in self.cod_prov:  # Plegamex
             return 50000
-        elif '23067223284' in self.cuit:  # Oxitécnica
+        elif '005074' in self.cod_prov:  # Oxitécnica
             return 150000
         elif 'gas pic s.a. (lubricantes)' in self.razon_social.lower():
             return 100000
@@ -142,7 +134,6 @@ def process_results(results):
       <table>
         <tr class="cabecera">
           <th class="cabecera-text">EMPRESA</th>
-          <th class="cabecera-text">CUIT</th>
           <th class="cabecera-text">SALDO</th>
         </tr>
     """
@@ -152,21 +143,19 @@ def process_results(results):
             if '2720' in saldo_deudor.codigo_postal.lower():
                 contenido_html += f"""
                     <tr>
-                      <td><b>({saldo_deudor.localidad_formateada()})</b> {saldo_deudor.razon_social} ({int(saldo_deudor.cod_prov)})</td>
-                      <td>{saldo_deudor.cuit_formateado()}</td>
+                      <td><b>({saldo_deudor.localidad_formateada()})</b> {saldo_deudor.razon_social} ({int(saldo_deudor.cod_prov)})</td>                      
                       <td><b><span class="saldo-text">$ {int(saldo_deudor.saldo)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) *({saldo_deudor.localidad_formateada()})* {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {int(saldo_deudor.saldo)}*\n'
+                mensaje_plantilla += f'{i}) *({saldo_deudor.localidad_formateada()})* {saldo_deudor.razon_social} - *$ {int(saldo_deudor.saldo)}*\n'
             else:
                 contenido_html += f"""
                     <tr>
                       <td>{saldo_deudor.razon_social} ({int(saldo_deudor.cod_prov)})</td>
-                      <td>{saldo_deudor.cuit_formateado()}</td>
                       <td><b><span class="saldo-text">$ {int(saldo_deudor.saldo)}</span></td>
                     </tr>
                 """
-                mensaje_plantilla += f'{i}) {saldo_deudor.razon_social} - {saldo_deudor.cuit_formateado()} - *$ {int(saldo_deudor.saldo)}*\n'
+                mensaje_plantilla += f'{i}) {saldo_deudor.razon_social} - *$ {int(saldo_deudor.saldo)}*\n'
 
     mensaje_completo = f'ATENCION PAGOS EXCEDIDOS: \n   -    RAZON SOCIAL    -   CUIT   -   SALDO   -\n{mensaje_plantilla}'
 
