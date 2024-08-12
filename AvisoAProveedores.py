@@ -62,17 +62,17 @@ WHERE [sdc_TipoIt] != 'L' AND
                         'Materiales para la construcción',
                         'Ferretería - Artículos varios',
                         'Muebles y Utiles',
-					                'Regalos Empresariales',
-					                'Indumentaria',
-					                'Reparaciones varias',
-					                'Instalaciones (IVA 21%)',
-					                'Gastos de Exposición',
-					                'Mantenimiento Inmuebles (21%)',
-					                'Fletes y Acarreos',
-					                'Gastos Varios de Mantenimiento',
-					                'Gastos de Seguridad e Higiene',
-					                'Gastos de Fabricación',
-					                'Publicidad (IVA 21%)') AND    
+					    'Regalos Empresariales',
+					    'Indumentaria',
+					    'Reparaciones varias',
+					    'Instalaciones (IVA 21%)',
+					    'Gastos de Exposición',
+					    'Mantenimiento Inmuebles (21%)',
+					    'Fletes y Acarreos',
+					    'Gastos Varios de Mantenimiento',
+					    'Gastos de Seguridad e Higiene',
+					    'Gastos de Fabricación',
+					    'Publicidad (IVA 21%)') AND    
      ([sdc_Desc] NOT LIKE '%Materiales para Fabricación%' AND
       [sdc_Desc] NOT LIKE '%Repuestos y Reparaciones%' AND
       [sdc_Desc] NOT LIKE '%Ferias y Exposiciones%' AND
@@ -131,7 +131,7 @@ try:
         }
         
         # Excluir los siguientes comprobantes
-        if comprobante['nro_comprobante'] in ('00000152','00025522','00025543','00025635','00025284'):
+        if comprobante['nro_comprobante'] in ('00000152','00025522','00025543','00025635','00025284','00025219'):
             continue
         proveedores[codProveedor]['comprobantes'].append(comprobante)
 
