@@ -13,6 +13,9 @@ from datetime import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from openpyxl import load_workbook
+from openpyxl.formatting.rule import ColorScaleRule
+from openpyxl.styles import PatternFill, Color, Fill
+
 
 # Cargar librería para .env
 dotenv.load_dotenv()
@@ -31,10 +34,10 @@ WITH ImportesTot AS (
 )
 
 SELECT DISTINCT
-    DATEDIFF(DAY, GETDATE(), [SegDetC].[sdc_FRecep]) AS [Días entrega],
-    CONVERT(varchar, [SegDetC].[sdc_FRecep], 103) AS Recepción,
-    ('(' + CONVERT(VARCHAR, ABS([SegCabC].[sccpro_Cod])) + ') ' + [SegCabC].[sccpro_RazSoc]) AS Proveedor,
-    ([SegTiposC].[spctco_Cod] + ' ' + CONVERT(VARCHAR, ABS([SegTiposC].[spc_Nro]))) AS Comprobante,   
+    DATEDIFF(DAY, GETDATE(), [SegDetC].[sdc_FRecep]) AS [DIAS ENTREGA],
+    CONVERT(varchar, [SegDetC].[sdc_FRecep], 103) AS RECEPCION,
+    ('(' + CONVERT(VARCHAR, ABS([SegCabC].[sccpro_Cod])) + ') ' + [SegCabC].[sccpro_RazSoc]) AS PROVEEDOR,
+    ([SegTiposC].[spctco_Cod] + ' ' + CONVERT(VARCHAR, ABS([SegTiposC].[spc_Nro]))) AS COMPROBANTE,   
     CASE 
         WHEN [SegTiposC].[spctco_Cod] = 'OCR' THEN '_Reposición'
         ELSE
@@ -47,8 +50,8 @@ SELECT DISTINCT
                     END + CONVERT(varchar(50), CAST(ImportesTot.ImporteTot AS decimal(38, 2)))
             END
     END AS Importe,
-    [SegCabC].[scc_Mens] AS Mensaje,
-    [SegCabC].[scctxa_Texto] AS Observaciones
+    [SegCabC].[scc_Mens] AS MENSAJE,
+    [SegCabC].[scctxa_Texto] AS OBSERVACIONES
 FROM [SBDACEST].[dbo].[SegTiposC]
 INNER JOIN [SegDetC] ON [SegTiposC].[spcscc_ID] = [SegDetC].[sdcscc_ID]
 INNER JOIN [SegCabC] ON [SegTiposC].[spcscc_ID] = [SegCabC].[scc_ID]
@@ -138,6 +141,38 @@ df.to_excel(ruta_archivo_excel, index=False)
 # Cargar el archivo Excel con openpyxl
 wb = load_workbook(ruta_archivo_excel)
 sheet = wb.active
+
+col_range = sheet.max_column
+
+#Color rojo para cabecera
+for col in range(1, col_range + 1):
+        cell_header = sheet.cell(1, col)
+        cell_header.fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type="solid") 
+
+
+# ## ws is a openpypxl worksheet object
+# _cell = sheet.cell('A1')
+
+# # Font properties
+# _cell.style.font.color.index = 'FFFFFFFF'
+# _cell.style.font.name = 'Futura Lt BT'
+# _cell.style.font.size = 11
+# _cell.style.font.bold = True
+# _cell.style.alignment.wrap_text = True
+
+
+
+sheet.conditional_formatting.add('A2:A1000', ColorScaleRule(start_type='percentile', 
+                                                       start_value=1, 
+                                                       start_color='00FF0000', 
+                                                       mid_type='percentile', 
+                                                       mid_value=50, 
+                                                       mid_color='00FFFF00', 
+                                                       end_type='percentile', 
+                                                       end_value=75, 
+                                                       end_color='0000FF00'
+                                                       )
+                              )
 
 # Ajustar el ancho de las columnas basado en el contenido de las celdas
 for col in sheet.columns:
