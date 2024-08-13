@@ -28,16 +28,18 @@ query = '''
 WITH ImportesTot AS (
     SELECT
         SegDetC.sdcscc_ID,
-        SUM(SegDetC.sdc_ImpTot) AS ImporteTot
-    FROM SegDetC
-    GROUP BY SegDetC.sdcscc_ID
+        SegTotC.[stc_ImpNetoEmi] * (([stc_Tasa1] / 100) + 1) AS ImporteTot
+    FROM SegDetC 
+	INNER JOIN [SegTotC] ON [SegDetC].[sdcscc_ID] = [SegTotC].[stcscc_ID]
+    GROUP BY SegDetC.sdcscc_ID, SegTotC.[stc_ImpNetoEmi] * (([stc_Tasa1] / 100) + 1)
 )
 
 SELECT DISTINCT
+	--[SegTiposC].[spcscc_ID],
     DATEDIFF(DAY, GETDATE(), [SegDetC].[sdc_FRecep]) AS [DIAS ENTREGA],
-    CONVERT(varchar, [SegDetC].[sdc_FRecep], 103) AS RECEPCION,
-    ('(' + CONVERT(VARCHAR, ABS([SegCabC].[sccpro_Cod])) + ') ' + [SegCabC].[sccpro_RazSoc]) AS PROVEEDOR,
-    ([SegTiposC].[spctco_Cod] + ' ' + CONVERT(VARCHAR, ABS([SegTiposC].[spc_Nro]))) AS COMPROBANTE,   
+    CONVERT(varchar, [SegDetC].[sdc_FRecep], 103) AS [RECEPCION],
+    ('(' + CONVERT(VARCHAR, ABS([SegCabC].[sccpro_Cod])) + ') ' + [SegCabC].[sccpro_RazSoc]) AS [PROVEEDOR],
+    ([SegTiposC].[spctco_Cod] + ' ' + CONVERT(VARCHAR, ABS([SegTiposC].[spc_Nro]))) AS [COMPROBANTE],   
     CASE 
         WHEN [SegTiposC].[spctco_Cod] = 'OCR' THEN '_Reposición'
         ELSE
@@ -49,14 +51,15 @@ SELECT DISTINCT
                         WHEN 2 THEN 'U$S '
                     END + CONVERT(varchar(50), CAST(ImportesTot.ImporteTot AS decimal(38, 2)))
             END
-    END AS Importe,
-    [SegCabC].[scc_Mens] AS MENSAJE,
-    [SegCabC].[scctxa_Texto] AS OBSERVACIONES
+    END AS [IMPORTE],
+    [SegCabC].[scc_Mens] AS [MENSAJE],
+    [SegCabC].[scctxa_Texto] AS [OBSERVACIONES]
 FROM [SBDACEST].[dbo].[SegTiposC]
 INNER JOIN [SegDetC] ON [SegTiposC].[spcscc_ID] = [SegDetC].[sdcscc_ID]
 INNER JOIN [SegCabC] ON [SegTiposC].[spcscc_ID] = [SegCabC].[scc_ID]
 INNER JOIN [Proveed] ON [SegCabC].[sccpro_Cod] = [Proveed].[pro_Cod]
 INNER JOIN [ImportesTot] ON [SegTiposC].[spcscc_ID] = [ImportesTot].[sdcscc_ID]
+INNER JOIN [SegTotC] ON [SegTiposC].[spcscc_ID] = [SegTotC].[stcscc_ID]
 WHERE 
     --sdcscc_ID = '170715' AND
     [sdc_TipoIt] != 'L' AND
@@ -92,7 +95,8 @@ WHERE
       [sdc_Desc] NOT LIKE '%Muebles y Utiles%' AND
       [sdc_Desc] NOT LIKE '%mal facturada%')
     )
-GROUP BY [SegDetC].[sdc_FRecep],
+GROUP BY --[SegTiposC].[spcscc_ID],
+		 [SegDetC].[sdc_FRecep],
          [SegDetC].[sdc_FRecep],
          [SegCabC].[sccpro_Cod],
          [SegCabC].[sccpro_RazSoc],
