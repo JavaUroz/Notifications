@@ -34,7 +34,7 @@ WITH ImportesTot AS (
     GROUP BY SegDetC.sdcscc_ID, SegTotC.[stc_ImpNetoEmi] * (([stc_Tasa1] / 100) + 1)
 )
 
-SELECT DISTINCT
+SELECT --DISTINCT
 	--[SegTiposC].[spcscc_ID],
     DATEDIFF(DAY, GETDATE(), [SegDetC].[sdc_FRecep]) AS [DIAS ENTREGA],
     CONVERT(varchar, [SegDetC].[sdc_FRecep], 103) AS [RECEPCION],
@@ -52,6 +52,19 @@ SELECT DISTINCT
                     END + CONVERT(varchar(50), CAST(ImportesTot.ImporteTot AS decimal(38, 2)))
             END
     END AS [IMPORTE],
+
+	CASE 
+        WHEN [SegTiposC].[spctco_Cod] = 'OCR' THEN ''
+        ELSE
+            CASE 
+                WHEN SUM((sdc_PrecioUn * sdc_CPendRtUM1) * (([stc_Tasa1] / 100) + 1)) = 0 THEN ''
+                ELSE
+                    CASE [SegCabC].[sccmon_codigo]
+                        WHEN 1 THEN '$ '
+                        WHEN 2 THEN 'U$S '
+                    END + CONVERT(varchar(50), CAST(SUM((sdc_PrecioUn * sdc_CPendRtUM1) * (([stc_Tasa1] / 100) + 1)) AS decimal(38, 2)))
+            END
+    END AS [SALDO APROX],
     [SegCabC].[scc_Mens] AS [MENSAJE],
     [SegCabC].[scctxa_Texto] AS [OBSERVACIONES]
 FROM [SBDACEST].[dbo].[SegTiposC]
@@ -95,7 +108,7 @@ WHERE
       [sdc_Desc] NOT LIKE '%Muebles y Utiles%' AND
       [sdc_Desc] NOT LIKE '%mal facturada%')
     )
-GROUP BY --[SegTiposC].[spcscc_ID],
+GROUP BY [SegTiposC].[spcscc_ID],
 		 [SegDetC].[sdc_FRecep],
          [SegDetC].[sdc_FRecep],
          [SegCabC].[sccpro_Cod],
@@ -106,6 +119,10 @@ GROUP BY --[SegTiposC].[spcscc_ID],
          [SegCabC].[scctxa_Texto],
          [SegCabC].[sccmon_codigo],
          ImportesTot.ImporteTot
+		 --((sdc_PrecioUn * sdc_CPendRtUM1) * (([stc_Tasa1] / 100) + 1))
+
+ORDER BY [SegDetC].[sdc_FRecep]
+
 
 '''
 
