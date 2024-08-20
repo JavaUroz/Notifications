@@ -7,7 +7,7 @@ from pickle import EMPTY_LIST
 from tokenize import Double
 from xml.dom.minidom import TypeInfo
 from xmlrpc.client import DateTime
-from twilio.rest import Client, content
+# from twilio.rest import Client, content
 import pyodbc
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -29,31 +29,31 @@ with open('images/footer.jpg', 'rb') as fp:
     img.add_header('Content-ID', '<image1>')
 # Establecer la consulta SQL
 sql_query = """
-                SELECT [CCOPRO_CODIN]
-	                  ,[CCOPRO_CUIT]
-	                  ,[CCOPRO_RAZSOC]
-	                  ,[CCO_FEMISION]
-	                  ,[CCO_FECMOD]
-	                  ,[CCOTCO_COD]
-	                  ,[CCO_NRO]
-                      ,[CCO_SALDOMONCC]
-                      ,[CCOCPG_COD]
-                      ,[CPG_DESC]
-	                  ,[CPG_OBSERV]
-                  FROM [SBDACEST].[dbo].[QRY_COMPRASPAGOS]
+                SELECT ABS([CCOPRO_CODIN]) AS [CCOPRO_CODIN]
+      ,[CCOPRO_CUIT]
+      ,[CCOPRO_RAZSOC]
+      ,[CCO_FEMISION]
+      ,[CCO_FECMOD]
+      ,[CCOTCO_COD]
+      ,[CCO_NRO]
+	  ,mon_simboloCC + ' ' + CONVERT(varchar(50), CAST([CCO_SALDOMONCC]*-1 AS decimal(38, 2))) AS [CCO_SALDOMONCC]
+      ,[CCOCPG_COD]
+      ,[CPG_DESC]
+      ,[CPG_OBSERV]
+  FROM [SBDACEST].[dbo].[QRY_COMPRASPAGOS]
 
-                  WHERE DescPasadoCG LIKE '%NO PASADO%' AND
-		                CCOUSU_CODIGO LIKE 'JAVIERU' AND
-		                CCOCPG_COD IN ('017','018','019') AND
-		                CCOTCO_COD LIKE 'FC'
+  WHERE DescPasadoCG LIKE '%NO PASADO%' AND
+        CCOUSU_CODIGO LIKE 'JAVIERU' AND
+        CCOCPG_COD IN ('017','018','019') AND
+        CCOTCO_COD LIKE 'FC'
 
-                  ORDER BY cco_FEmision desc
+  ORDER BY cco_FEmision desc
 """
 
-# Establecer cliente con credenciales de SID y Token de Twilio 
-account_sid = os.environ['ACCOUNT_SID']
-auth_token = os.environ['AUTH_TOKEN']
-client = Client(account_sid, auth_token)
+# # Establecer cliente con credenciales de SID y Token de Twilio 
+# account_sid = os.environ['ACCOUNT_SID']
+# auth_token = os.environ['AUTH_TOKEN']
+# client = Client(account_sid, auth_token)
 
 mensaje_plantilla = ''
 i = 1
@@ -117,34 +117,34 @@ contenido_html = """
     </tr>
 """
 
-# Función para enviar mensaje de WhatsApp
-def enviar_mensaje_whatsapp(destinatario, mensaje):
-    # Split the message into chunks of 1600 characters or less
-    message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
+# # Función para enviar mensaje de WhatsApp
+# def enviar_mensaje_whatsapp(destinatario, mensaje):
+#     # Split the message into chunks of 1600 characters or less
+#     message_chunks = [mensaje[i:i+1600] for i in range(0, len(mensaje), 1600)]
     
    
     
     
-    for contador, chunk in enumerate(message_chunks):                
-        try:
-            message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = chunk,                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-            print('Mensaje enviado correctamente:', message.sid)
-            if contador >= 1:
-                message = client.messages.create(
-                                      from_='whatsapp:+14155238886',
-                                      body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
-                                      to=f'whatsapp:{destinatario}'
-                                  )
-                print(f'Se alcanzo el l\u00EDmite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
-                break                
-        except Exception as e:
-            print(f'Ha ocurrido un error:\n', e)
+#     for contador, chunk in enumerate(message_chunks):                
+#         try:
+#             message = client.messages.create(
+#                                       from_='whatsapp:+14155238886',
+#                                       body = chunk,                              
+#                                       to=f'whatsapp:{destinatario}'
+#                                   )
+#             print('Mensaje enviado correctamente:', message.sid)
+#             if contador >= 1:
+#                 message = client.messages.create(
+#                                       from_='whatsapp:+14155238886',
+#                                       body = f'Se excedio la cantidad de mensajes permitidos({contador + 1})\nEl cuadro completo se enviara a las casillas de correo asignadas.',                              
+#                                       to=f'whatsapp:{destinatario}'
+#                                   )
+#                 print(f'Se alcanzo el l\u00EDmite de mensajes permitidos de ({len(message_chunks) - 1}):\n')
+#                 break                
+#         except Exception as e:
+#             print(f'Ha ocurrido un error:\n', e)
 
-# Inicia la conexión
+# # Inicia la conexión
 try:
     # Establecer la conexión con la base de datos
     conexion = pyodbc.connect(connection_string)
@@ -174,13 +174,13 @@ try:
         
         contenido_html += f"""
             <tr>
-              <td>{codProveedor}</td>
+              <td>{int(codProveedor)}</td>
               <td>{cuit}</td>
               <td>{razonSocial}</td>
               <td>{fechaEmision.strftime('%d/%m/%Y')}</td>
               <td>{fechaRegistracion.strftime('%d/%m/%Y')}</td>
               <td>{codComprobante} {nroComprobante}</td>              
-              <td>${impTotal}</td>
+              <td>{impTotal}</td>
               <td>({codCondPago}) {descCondPago}</td>
               <td>{observaciones}</td>
              </tr>
@@ -218,14 +218,14 @@ if resultados != []:
     
     len_mensaje = len(mensaje_completo)
     
-    try:
-         # Llamar a la función para enviar el mensaje a Javier Gabarini
-        enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
+    # try:
+    #      # Llamar a la función para enviar el mensaje a Javier Gabarini
+    #     enviar_mensaje_whatsapp('+5492473504073', mensaje_completo)
         
-        # Llamar a la función para enviar el mensaje Javier Uroz
-        enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
-    except Exception as e:
-        print('Error al enviar mensaje: \n',e)
+    #     # Llamar a la función para enviar el mensaje Javier Uroz
+    #     enviar_mensaje_whatsapp('+5492473501336', mensaje_completo)
+    # except Exception as e:
+    #     print('Error al enviar mensaje: \n',e)
         
     # Prueba en cmd
     print(mensaje_completo)    

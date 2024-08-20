@@ -23,54 +23,54 @@ connection_string = os.environ['CONNECTION_STRING']
 # Establecer la consulta SQL
 sql_query = """                
                 SELECT DISTINCT
-                    cabecera.[sccpro_Cod],
-                    cabecera.[sccpro_CUIT],
-                    cabecera.[sccpro_RazSoc],
-                    detalle.[sdc_FRecep],
-                    detalle.[sdcart_CodGen],
-                    detalle.[sdc_Desc],	
-                    tiposPri.[spctco_Cod] AS [Cod_Pri],
-                    tiposPri.[spc_Nro] AS [Nro_Pri],
-                    tiposOrig.[spctco_Cod] AS [Cod_Orig],
-                    tiposOrig.[spc_Nro] AS [Nro_Orig],
-                    tipos.[spctco_Cod] AS [Cod],
-                    tipos.[spc_Nro] AS [Nro],	    
-                    detallePri.[sdc_PrecioUn] AS [sdc_PrecioUnPri],
-                    detalleOrig.[sdc_PrecioUn] AS [sdc_PrecioUnOrig],
-                    detalle.[sdc_PrecioUn]
-                FROM 
-                    [SBDACEST].[dbo].[SegRelDetC] relacion
-                INNER JOIN 
-                    [SegTiposC] tiposPri ON relacion.[srcscc_IDPri] = tiposPri.[spcscc_ID]
-                INNER JOIN 
-                    [SegTiposC] tiposOrig ON relacion.[srcscc_IDOrig] = tiposOrig.[spcscc_ID]
-                INNER JOIN 
-                    [SegTiposC] tipos ON relacion.[srcscc_ID] = tipos.[spcscc_ID]
-                INNER JOIN 
-                    [SegCabC] cabecera ON relacion.[srcscc_ID] = cabecera.[scc_ID]
-                INNER JOIN 
-                    [SegDetC] detalle ON relacion.[srcscc_ID] = detalle.[sdcscc_ID]
-                INNER JOIN 
-                    [SegDetC] detallePri ON relacion.[srcscc_IDPri] = detallePri.[sdcscc_ID] AND detallePri.[sdcart_CodGen] = detalle.[sdcart_CodGen] AND detallePri.[sdc_NReng] = detalle.[sdc_NReng]
-                INNER JOIN 
-                    [SegDetC] detalleOrig ON relacion.[srcscc_IDOrig] = detalleOrig.[sdcscc_ID] AND detalleOrig.[sdcart_CodGen] = detalle.[sdcart_CodGen] AND detalleOrig.[sdc_NReng] = detalle.[sdc_NReng]
-                WHERE 
-                    tiposPri.[spctco_Cod] IN ('OC', 'OCR', 'OCP', 'RT') 
-                    AND tipos.[spctco_Cod] NOT LIKE '%RT%'
-                    AND ((tipos.[spctco_Cod] = 'FC' AND detalle.[sdc_PrecioUn] > detallePri.[sdc_PrecioUn] * 1.03)OR 
-                                (tipos.[spctco_Cod] != 'NC' AND NOT
-				                                ((detalleOrig.[sdc_PrecioUn] BETWEEN detalle.[sdc_PrecioUn] * 0.97 AND detalle.[sdc_PrecioUn] * 1.03)
-				                                OR
-				                                (detallePri.[sdc_PrecioUn] BETWEEN (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 0.97
-					                                AND (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 1.02))))
-                    AND detalle.[sdc_FRecep] <= DATEADD(YEAR, 1, GETDATE()) 
-                    AND YEAR(detalle.[sdc_FechaOC]) = YEAR(GETDATE())
-                    AND detalle.[sdc_ImpTot] != 0
-                    AND detallePri.[sdc_ImpTot] != 0
-                    AND detalleOrig.[sdc_ImpTot] != 0	
+    cabecera.[sccpro_Cod],
+    cabecera.[sccpro_CUIT],
+    cabecera.[sccpro_RazSoc],
+    detalle.[sdc_FRecep],
+    detalle.[sdcart_CodGen],
+    detalle.[sdc_Desc],	
+    tiposPri.[spctco_Cod] AS [Cod_Pri],
+    tiposPri.[spc_Nro] AS [Nro_Pri],
+    tiposOrig.[spctco_Cod] AS [Cod_Orig],
+    tiposOrig.[spc_Nro] AS [Nro_Orig],
+    tipos.[spctco_Cod] AS [Cod],
+    tipos.[spc_Nro] AS [Nro],	    
+    detallePri.[sdc_PrecioUn] AS [sdc_PrecioUnPri],
+    detalleOrig.[sdc_PrecioUn] AS [sdc_PrecioUnOrig],
+    detalle.[sdc_PrecioUn]
+FROM 
+    [SBDACEST].[dbo].[SegRelDetC] relacion
+INNER JOIN 
+    [SegTiposC] tiposPri ON relacion.[srcscc_IDPri] = tiposPri.[spcscc_ID]
+INNER JOIN 
+    [SegTiposC] tiposOrig ON relacion.[srcscc_IDOrig] = tiposOrig.[spcscc_ID]
+INNER JOIN 
+    [SegTiposC] tipos ON relacion.[srcscc_ID] = tipos.[spcscc_ID]
+INNER JOIN 
+    [SegCabC] cabecera ON relacion.[srcscc_ID] = cabecera.[scc_ID]
+INNER JOIN 
+    [SegDetC] detalle ON relacion.[srcscc_ID] = detalle.[sdcscc_ID]
+INNER JOIN 
+    [SegDetC] detallePri ON relacion.[srcscc_IDPri] = detallePri.[sdcscc_ID] AND detallePri.[sdcart_CodGen] = detalle.[sdcart_CodGen] AND detallePri.[sdc_NReng] = detalle.[sdc_NReng]
+INNER JOIN 
+    [SegDetC] detalleOrig ON relacion.[srcscc_IDOrig] = detalleOrig.[sdcscc_ID] AND detalleOrig.[sdcart_CodGen] = detalle.[sdcart_CodGen] AND detalleOrig.[sdc_NReng] = detalle.[sdc_NReng]
+WHERE 
+    tiposPri.[spctco_Cod] IN ('OC', 'OCR', 'OCP', 'RT') 
+    AND tipos.[spctco_Cod] NOT LIKE '%RT%'
+    AND ((tipos.[spctco_Cod] = 'FC' AND detalle.[sdc_PrecioUn] > detallePri.[sdc_PrecioUn] * 1.03)OR 
+                (tipos.[spctco_Cod] != 'NC' AND NOT
+                                ((detalleOrig.[sdc_PrecioUn] BETWEEN detalle.[sdc_PrecioUn] * 0.97 AND detalle.[sdc_PrecioUn] * 1.03)
+                                OR
+                                (detallePri.[sdc_PrecioUn] BETWEEN (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 0.97
+				                                AND (detalleOrig.[sdc_PrecioUn] - detalle.[sdc_PrecioUn]) * 1.02))))
+    AND detalle.[sdc_FRecep] >= DATEADD(MONTH, -3, GETDATE()) 
+    AND YEAR(detalle.[sdc_FechaOC]) = YEAR(GETDATE())
+    AND detalle.[sdc_ImpTot] != 0
+    AND detallePri.[sdc_ImpTot] != 0
+    AND detalleOrig.[sdc_ImpTot] != 0	
     
-                ORDER BY 
-                    detalle.[sdc_FRecep] DESC;
+ORDER BY 
+    detalle.[sdc_FRecep] DESC;
 """
 
 mensaje_plantilla = ''
