@@ -34,7 +34,8 @@ SELECT
     [SegDetC].[sdcume_Desc1] AS UM1,    
     SUM([SegDetC].[sdc_CantUM1]) AS CANTIDAD,
     [SegDetC].[sdcume_Desc2] AS UM2,
-    SUM([SegDetC].[sdc_CantUM2]) AS CANTIDAD
+    SUM([SegDetC].[sdc_CantUM2]) AS CANTIDAD,
+	'' AS [ORDEN DE COMPRA]
 FROM [SBDACEST].[dbo].[SegTiposC]
 INNER JOIN [SegDetC] ON [SegTiposC].[spcscc_ID] = [SegDetC].[sdcscc_ID]
 FULL OUTER JOIN [SegCabC] ON [SegTiposC].[spcscc_ID] = [SegCabC].[scc_ID]
